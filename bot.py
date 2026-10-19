@@ -426,6 +426,11 @@ async def on_command_completion(ctx: commands.Context):
 # ── Bot Events ────────────────────────────────────────────────────────────────
 @bot.event
 async def on_ready():
+    if getattr(bot, "_ready_once", False):
+        log.info(f"Reconnected as {bot.user} ({bot.user.id})")
+        return
+    bot._ready_once = True
+
     disable_windows_quickedit()
     await init_db()
     await load_non_prefix_users()
@@ -439,14 +444,17 @@ async def on_ready():
     log.info(f"Logged in as {bot.user} ({bot.user.id})")
     log.info(f"Loaded {len(bot.application_commands)} slash command definitions")
 
-    # Instantly sync slash commands to all connected guilds (0-delay visibility)
-    try:
-        guild_ids = [g.id for g in bot.guilds]
-        if guild_ids:
-            await bot.sync_commands(force=True, guild_ids=guild_ids, delete_existing=True)
-            log.info(f"Instantly synced slash commands across {len(guild_ids)} guild(s) ✓")
-    except Exception as e:
-        log.warning(f"Could not instant-sync commands to guilds: {e}")
+    # Instantly sync slash commands to all connected guilds in background (0-delay visibility)
+    async def sync_guilds():
+        try:
+            guild_ids = [g.id for g in bot.guilds]
+            if guild_ids:
+                await bot.sync_commands(force=True, guild_ids=guild_ids, delete_existing=True)
+                log.info(f"Instantly synced slash commands across {len(guild_ids)} guild(s) ✓")
+        except Exception as e:
+            log.warning(f"Could not instant-sync commands to guilds: {e}")
+
+    asyncio.create_task(sync_guilds())
 
 
 # ── Non-Prefix Management Logic ──────────────────────────────────────────────
@@ -705,8 +713,42 @@ async def on_member_remove(member: discord.Member):
             except Exception:
                 pass
 
-# ── Load Cogs ─────────────────────────────────────────────────────────────────
+# ── Lightweight Web Server (For Render / Cloud Hosting Port Detection) ─────────
+async def start_dummy_webserver(port: int):
+    """
+    Runs a lightweight HTTP health-check server using aiohttp.web.
+    This satisfies deployment platform port checks (e.g. Render Web Service)
+    so the container is marked healthy and does not time out.
+    """
+    from aiohttp import web
+
+    app = web.Application()
+
+    async def health_check(request):
+        return web.Response(text="Nexus Discord Bot is running! ⚡\nStatus: OK", content_type="text/plain")
+
+    app.router.add_get("/", health_check)
+    app.router.add_get("/health", health_check)
+
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+    log.info(f"✓ Cloud health-check server listening on 0.0.0.0:{port}")
+    return runner
+
+
+# ── Load Cogs & Launch Bot ────────────────────────────────────────────────────
 async def main():
+    web_runner = None
+    # If deployed on a cloud host with $PORT (e.g. Render Web Service), bind HTTP port
+    port_env = os.getenv("PORT") or (8080 if os.getenv("RENDER") else None)
+    if port_env:
+        try:
+            web_runner = await start_dummy_webserver(int(port_env))
+        except Exception as e:
+            log.warning(f"Could not start health-check web server: {e}")
+
     cog_files = [
         "cogs.admin",
         "cogs.announcements",
@@ -749,6 +791,11 @@ async def main():
     except Exception as e:
         log.error(f"Unexpected error: {e}")
     finally:
+        if web_runner:
+            try:
+                await web_runner.cleanup()
+            except Exception:
+                pass
         if not bot.is_closed():
             await bot.close()
 
