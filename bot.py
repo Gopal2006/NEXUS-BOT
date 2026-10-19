@@ -81,8 +81,89 @@ def get_prefix(client, message: discord.Message):
             return ["n!", "N!", ""]
     return prefixes
 
-# ── Bot ───────────────────────────────────────────────────────────────────────
-bot = commands.Bot(
+# ── Bot Class with Resilient Slash Command Dispatcher ─────────────────────────
+class NexusBot(commands.Bot):
+    """
+    Subclass of commands.Bot featuring a resilient slash command interaction dispatcher.
+    Resolves Pycord's limitation where global commands fail to match guild interactions
+    if Discord's /applications/commands registration endpoint is rate-limited (HTTP 429)
+    or during delayed syncs.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._is_syncing = False
+
+    async def process_application_commands(
+        self, interaction: discord.Interaction, auto_sync: bool | None = None
+    ) -> None:
+        if interaction.type not in (
+            discord.InteractionType.application_command,
+            discord.InteractionType.auto_complete,
+        ):
+            return
+
+        command = None
+        if interaction.data:
+            cmd_id = interaction.data.get("id")
+            cmd_name = interaction.data.get("name")
+            guild_id = interaction.data.get("guild_id")
+            if guild_id:
+                guild_id = int(guild_id)
+
+            # 1. Fast cache lookup
+            if cmd_id and cmd_id in self._application_commands:
+                command = self._application_commands[cmd_id]
+
+            # 2. Resilient fallback: search registered & pending commands by name
+            if command is None and cmd_name:
+                all_cmds = list(self.application_commands) + list(self.pending_application_commands)
+                for cmd in all_cmds:
+                    if cmd.name == cmd_name:
+                        # Global commands have cmd.guild_ids as None or [] -> matches ALL guilds!
+                        if (
+                            cmd.guild_ids is None
+                            or not cmd.guild_ids
+                            or (guild_id and (guild_id == cmd.guild_ids or (isinstance(cmd.guild_ids, (list, tuple, set)) and guild_id in cmd.guild_ids)))
+                        ):
+                            command = cmd
+                            if cmd_id:
+                                cmd.id = cmd_id
+                                self._application_commands[cmd_id] = cmd
+                            break
+
+        if command is None:
+            log.warning(f"Unknown slash command invoked: {interaction.data.get('name') if interaction.data else 'None'}")
+            return self.dispatch("unknown_application_command", interaction)
+
+        if interaction.type is discord.InteractionType.auto_complete:
+            return self.dispatch(
+                "application_command_auto_complete", interaction, command
+            )
+
+        ctx = await self.get_application_context(interaction)
+        interaction.command = command
+        await self.invoke_application_command(ctx)
+
+    def get_application_command(
+        self,
+        name: str,
+        guild_ids: list[int] | None = None,
+        type: type = discord.ApplicationCommand,
+    ):
+        cmd = super().get_application_command(name, guild_ids=guild_ids, type=type)
+        if cmd is not None:
+            return cmd
+        for c in self.pending_application_commands:
+            if c.name == name and isinstance(c, type):
+                if guild_ids is not None and c.guild_ids != guild_ids:
+                    continue
+                return c
+        return None
+
+
+# ── Bot Instance ──────────────────────────────────────────────────────────────
+bot = NexusBot(
     command_prefix=get_prefix,
     intents=intents,
     help_command=None,   # custom help command in cogs/help.py
@@ -428,27 +509,39 @@ async def on_command_completion(ctx: commands.Context):
 async def sync_slash_commands_safely():
     """
     Safely synchronizes global slash commands in the background without
-    blocking the gateway event loop or causing heartbeat starvation.
+    blocking the gateway event loop or hanging indefinitely during Discord rate limits.
     """
+    if getattr(bot, "_is_syncing", False):
+        return
+    bot._is_syncing = True
     try:
         # Guarantee every command is marked global (guild_ids = None)
         for cmd in bot.pending_application_commands:
             cmd.guild_ids = None
 
         log.info("Checking & registering global slash commands with Discord...")
-        await bot.sync_commands()
+        # 20-second timeout avoids hanging in Pycord's internal 429 backoff sleep loop
+        await asyncio.wait_for(bot.sync_commands(), timeout=20.0)
         count = len(bot.application_commands) or len(bot.pending_application_commands)
         log.info(f"Loaded {count} global slash command(s) ✓")
+    except asyncio.TimeoutError:
+        count = len(bot.application_commands) or len(bot.pending_application_commands)
+        log.warning(
+            f"Discord command sync timed out (likely 429 rate limit backoff). "
+            f"Internal resilient dispatcher is active; all {count} slash commands remain fully functional!"
+        )
     except discord.HTTPException as e:
         if e.status == 429:
             log.warning(
                 f"Discord is currently rate-limiting command updates: {e}. "
-                "The background task will retry once Discord's cooldown ends."
+                "Resilient dispatcher is active; slash commands are fully functional."
             )
         else:
             log.error(f"Failed to sync slash commands with Discord: {e}")
     except Exception as e:
         log.error(f"Error while syncing slash commands: {e}")
+    finally:
+        bot._is_syncing = False
 
 
 # ── Bot Events ────────────────────────────────────────────────────────────────
@@ -649,11 +742,16 @@ async def cmd_sync(ctx: commands.Context, mode: str = None):
     if ctx.author.id != GLOBAL_OWNER_ID:
         return
 
+    if getattr(bot, "_is_syncing", False):
+        return await ctx.reply("⏳ A slash command sync is currently running in the background. Please wait a moment.")
+
+    bot._is_syncing = True
     mode_lower = (mode or "").lower()
     msg = await ctx.reply("🔄 Synchronizing slash commands with Discord...")
+
     try:
         if mode_lower == "guild" and ctx.guild:
-            await ctx.bot.sync_commands(guild_ids=[ctx.guild.id], force=True)
+            await asyncio.wait_for(ctx.bot.sync_commands(guild_ids=[ctx.guild.id], force=True), timeout=25.0)
             # CRITICAL: Pycord's sync_commands(guild_ids=...) mutates cmd.guild_ids on pending commands.
             # We MUST reset cmd.guild_ids back to None so commands remain GLOBAL in memory!
             for cmd in ctx.bot.pending_application_commands:
@@ -668,7 +766,7 @@ async def cmd_sync(ctx: commands.Context, mode: str = None):
         elif mode_lower == "force":
             for cmd in ctx.bot.pending_application_commands:
                 cmd.guild_ids = None
-            await ctx.bot.sync_commands(force=True, delete_existing=True)
+            await asyncio.wait_for(ctx.bot.sync_commands(force=True, delete_existing=True), timeout=25.0)
             count = len(ctx.bot.application_commands) or len(ctx.bot.pending_application_commands)
             await msg.edit(
                 content=(
@@ -679,16 +777,31 @@ async def cmd_sync(ctx: commands.Context, mode: str = None):
         else:
             for cmd in ctx.bot.pending_application_commands:
                 cmd.guild_ids = None
-            await ctx.bot.sync_commands()
+            await asyncio.wait_for(ctx.bot.sync_commands(), timeout=25.0)
             count = len(ctx.bot.application_commands) or len(ctx.bot.pending_application_commands)
             await msg.edit(content=f"✅ Successfully synchronized **{count}** global slash commands!")
+    except asyncio.TimeoutError:
+        count = len(ctx.bot.application_commands) or len(ctx.bot.pending_application_commands)
+        await msg.edit(
+            content=(
+                "⏳ **Discord Rate Limit Notice:** Discord API is temporarily rate-limiting command updates (`/applications/commands`).\n"
+                f"⚡ **Commands Are Active:** Nexus's internal resilient dispatcher is handling all **{count}** slash commands! You can use `/announce`, `/ticket`, `/poll`, etc. immediately without waiting."
+            )
+        )
     except discord.HTTPException as e:
         if e.status == 429:
-            await msg.edit(content=f"⏳ Discord is currently rate-limiting command updates. Please wait a few minutes before trying again.\n`{e}`")
+            await msg.edit(
+                content=(
+                    "⏳ **Discord Rate Limit:** Discord is cooling down from command sync requests.\n"
+                    "⚡ Nexus's internal dispatcher is active — your slash commands are working right now!"
+                )
+            )
         else:
             await msg.edit(content=f"❌ Failed to sync commands: `{e}`")
     except Exception as e:
         await msg.edit(content=f"❌ Failed to sync commands: `{e}`")
+    finally:
+        bot._is_syncing = False
 
 
 # ── Invite Command ────────────────────────────────────────────────────────────

@@ -421,7 +421,11 @@ class Giveaway(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        asyncio.create_task(self._ensure_db())
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(self._ensure_db())
+        except RuntimeError:
+            pass
         self.giveaway_loop.start()
 
     async def _ensure_db(self):
