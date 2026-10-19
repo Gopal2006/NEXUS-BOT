@@ -18,17 +18,25 @@ from pathlib import Path
 
 # ── Windows Console Freeze Fix ────────────────────────────────────────────────
 def disable_windows_quickedit():
-    """Prevents Windows Console from freezing the asyncio loop when clicked."""
+    """Prevents Windows Console from freezing the asyncio loop when clicked or highlighted."""
     if sys.platform == "win32":
         try:
             import ctypes
             kernel32 = ctypes.windll.kernel32
-            hStdin = kernel32.GetStdHandle(-10)  # STD_INPUT_HANDLE
-            mode = ctypes.c_uint32()
-            if kernel32.GetConsoleMode(hStdin, ctypes.byref(mode)):
-                # Clear ENABLE_QUICK_EDIT_MODE (0x0040), set ENABLE_EXTENDED_FLAGS (0x0080)
-                new_mode = (mode.value & ~0x0040) | 0x0080
-                kernel32.SetConsoleMode(hStdin, new_mode)
+            kernel32.CreateFileW.restype = ctypes.c_void_p
+            kernel32.GetStdHandle.restype = ctypes.c_void_p
+
+            # Use CONIN$ directly to access the console input buffer (handles 64-bit properly)
+            h = kernel32.CreateFileW("CONIN$", 0xC0000000, 3, None, 3, 0, None)
+            if not h or h == ctypes.c_void_p(-1).value:
+                h = kernel32.GetStdHandle(-10)  # STD_INPUT_HANDLE
+
+            if h and h != ctypes.c_void_p(-1).value:
+                mode = ctypes.c_uint32()
+                if kernel32.GetConsoleMode(h, ctypes.byref(mode)):
+                    # Clear ENABLE_QUICK_EDIT_MODE (0x0040), set ENABLE_EXTENDED_FLAGS (0x0080)
+                    new_mode = (mode.value & ~0x0040) | 0x0080
+                    kernel32.SetConsoleMode(h, new_mode)
         except Exception:
             pass
 

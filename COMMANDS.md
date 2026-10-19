@@ -225,27 +225,3 @@ Nexus provides comprehensive, multi-channel audit logging:
 /set-log channel:#my-mod-logs
 /set-cmdlog channel:#my-command-logs
 ```
-
----
-
-## 11. FAQ: What is `nexus.db`?
-
-### What is `nexus.db`?
-`nexus.db` is an SQLite database file that Nexus automatically creates on your local machine when `python bot.py` is started.
-
-### What does it store?
-1. **Server Configurations (`guild_config`):** Assigned bot role, ticket role, welcome/leave channels, custom messages, and log channel IDs.
-2. **Non-Prefix Users (`non_prefix_users`):** User IDs granted prefix-free command access.
-3. **Giveaways (`giveaways` & `giveaway_ineligible_dms`):** Active giveaways, end timestamps, message IDs, prize details, required role IDs, and ineligible DM tracking.
-4. **Member Warnings (`warns`):** Moderator warnings, timestamps, and case histories.
-5. **Support Tickets (`tickets`):** Active ticket channels and creator IDs.
-6. **Mutes (`mutes`):** Member timeouts for the auto-unmute background task.
-
-### Should `nexus.db` be committed or pushed to Git?
-**NO.** `nexus.db` should **never** be pushed to Git or public repositories because:
-- It contains private server IDs, user IDs, and local testing configurations.
-- When you or someone else downloads the bot and runs `python bot.py`, the bot automatically initializes a clean, fresh `nexus.db` database automatically.
-- Nexus includes `nexus.db` in [.gitignore](.gitignore) to ensure it stays private on your local machine.
-
-### Can I delete `nexus.db`?
-Yes! If you ever want to completely wipe all local test data and start 100% fresh, simply delete `nexus.db`. When you next run `python bot.py`, a brand new database will be initialized automatically.
