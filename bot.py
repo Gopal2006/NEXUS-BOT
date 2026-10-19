@@ -629,6 +629,18 @@ async def cmd_sync(ctx: commands.Context):
         await msg.edit(content=f"❌ Failed to sync commands: `{e}`")
 
 
+# ── Guild Join (Auto-sync slash commands to new servers) ───────────────────────
+@bot.event
+async def on_guild_join(guild: discord.Guild):
+    """Automatically sync slash commands whenever the bot joins a new server."""
+    log.info(f"Joined new guild: {guild.name} (ID: {guild.id})")
+    try:
+        await bot.sync_commands(force=True, guild_ids=[guild.id], delete_existing=True)
+        log.info(f"Instantly synced slash commands to new guild: {guild.name} ({guild.id}) ✓")
+    except Exception as e:
+        log.warning(f"Could not sync slash commands to new guild {guild.id}: {e}")
+
+
 # ── Member Join ───────────────────────────────────────────────────────────────
 @bot.event
 async def on_member_join(member: discord.Member):
