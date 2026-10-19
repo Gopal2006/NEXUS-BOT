@@ -428,6 +428,21 @@ class Giveaway(commands.Cog):
         try:
             async with aiosqlite.connect(DB_PATH) as db:
                 await db.execute("""
+                    CREATE TABLE IF NOT EXISTS giveaways (
+                        id               INTEGER PRIMARY KEY AUTOINCREMENT,
+                        guild_id         INTEGER NOT NULL,
+                        channel_id       INTEGER NOT NULL,
+                        message_id       INTEGER NOT NULL,
+                        host_id          INTEGER NOT NULL,
+                        prize            TEXT    NOT NULL,
+                        winners          INTEGER NOT NULL DEFAULT 1,
+                        ends_at          REAL    NOT NULL,
+                        ended            INTEGER NOT NULL DEFAULT 0,
+                        required_role_id INTEGER DEFAULT NULL,
+                        required_role_ids TEXT DEFAULT NULL
+                    );
+                """)
+                await db.execute("""
                     CREATE TABLE IF NOT EXISTS giveaway_ineligible_dms (
                         giveaway_id INTEGER NOT NULL,
                         user_id     INTEGER NOT NULL,

@@ -87,6 +87,7 @@ bot = commands.Bot(
     intents=intents,
     help_command=None,   # custom help command in cogs/help.py
     description="Nexus — All-Purpose Discord Bot",
+    auto_sync_commands=False,
 )
 bot.non_prefix_users = NON_PREFIX_USERS
 
@@ -423,6 +424,33 @@ async def on_command_completion(ctx: commands.Context):
         log.error(f"Failed to log command execution: {e}")
 
 
+# ── Slash Command Synchronization ─────────────────────────────────────────────
+async def sync_slash_commands_safely():
+    """
+    Safely synchronizes global slash commands in the background without
+    blocking the gateway event loop or causing heartbeat starvation.
+    """
+    try:
+        # Guarantee every command is marked global (guild_ids = None)
+        for cmd in bot.pending_application_commands:
+            cmd.guild_ids = None
+
+        log.info("Checking & registering global slash commands with Discord...")
+        await bot.sync_commands()
+        count = len(bot.application_commands) or len(bot.pending_application_commands)
+        log.info(f"Loaded {count} global slash command(s) ✓")
+    except discord.HTTPException as e:
+        if e.status == 429:
+            log.warning(
+                f"Discord is currently rate-limiting command updates: {e}. "
+                "The background task will retry once Discord's cooldown ends."
+            )
+        else:
+            log.error(f"Failed to sync slash commands with Discord: {e}")
+    except Exception as e:
+        log.error(f"Error while syncing slash commands: {e}")
+
+
 # ── Bot Events ────────────────────────────────────────────────────────────────
 @bot.event
 async def on_ready():
@@ -432,8 +460,6 @@ async def on_ready():
     bot._ready_once = True
 
     disable_windows_quickedit()
-    await init_db()
-    await load_non_prefix_users()
     await bot.change_presence(
         status=discord.Status.dnd,
         activity=discord.Activity(
@@ -444,6 +470,16 @@ async def on_ready():
     log.info(f"Logged in as {bot.user} ({bot.user.id})")
     slash_count = len(bot.pending_application_commands) or len(bot.application_commands)
     log.info(f"Loaded {slash_count} slash command definition(s) ✓")
+
+    invite_url = (
+        f"https://discord.com/api/oauth2/authorize?client_id={bot.user.id}&permissions=8&scope=bot%20applications.commands"
+    )
+    log.info(f"Invite URL (with slash commands scope): {invite_url}")
+
+    # Synchronize global slash commands in background once on startup
+    if not getattr(bot, "_commands_synced", False):
+        bot._commands_synced = True
+        asyncio.create_task(sync_slash_commands_safely())
 
 
 # ── Non-Prefix Management Logic ──────────────────────────────────────────────
@@ -607,7 +643,7 @@ async def cmd_sync(ctx: commands.Context, mode: str = None):
     """Sync slash commands with Discord (Bot Owner only).
     Usage:
       n!sync         - Synchronize global commands (safe, hash-checked)
-      n!sync guild   - Instantly sync commands to the current server (bypasses global rate limits)
+      n!sync guild   - Instantly sync commands to the current server (bypasses global propagation delay)
       n!sync force   - Force re-register all global commands
     """
     if ctx.author.id != GLOBAL_OWNER_ID:
@@ -618,16 +654,34 @@ async def cmd_sync(ctx: commands.Context, mode: str = None):
     try:
         if mode_lower == "guild" and ctx.guild:
             await ctx.bot.sync_commands(guild_ids=[ctx.guild.id], force=True)
+            # CRITICAL: Pycord's sync_commands(guild_ids=...) mutates cmd.guild_ids on pending commands.
+            # We MUST reset cmd.guild_ids back to None so commands remain GLOBAL in memory!
+            for cmd in ctx.bot.pending_application_commands:
+                cmd.guild_ids = None
             count = len(ctx.bot.application_commands) or len(ctx.bot.pending_application_commands)
-            await msg.edit(content=f"✅ Instantly synced **{count}** slash commands to **{ctx.guild.name}**!\n💡 *Tip: If Discord still shows old commands, press `Ctrl + R` in your Discord app to refresh.*")
+            await msg.edit(
+                content=(
+                    f"✅ Instantly synced **{count}** slash commands to **{ctx.guild.name}**!\n"
+                    "💡 *Tip: If Discord still doesn't show them, press `Ctrl + R` in your Discord app to refresh.*"
+                )
+            )
         elif mode_lower == "force":
+            for cmd in ctx.bot.pending_application_commands:
+                cmd.guild_ids = None
             await ctx.bot.sync_commands(force=True, delete_existing=True)
             count = len(ctx.bot.application_commands) or len(ctx.bot.pending_application_commands)
-            await msg.edit(content=f"✅ Force-synced **{count}** global slash commands!\n💡 *Tip: Global commands may take a few minutes to propagate across all servers.*")
+            await msg.edit(
+                content=(
+                    f"✅ Force-synced **{count}** global slash commands!\n"
+                    "💡 *Global commands apply across all servers. If needed, refresh Discord (`Ctrl + R`).*"
+                )
+            )
         else:
+            for cmd in ctx.bot.pending_application_commands:
+                cmd.guild_ids = None
             await ctx.bot.sync_commands()
             count = len(ctx.bot.application_commands) or len(ctx.bot.pending_application_commands)
-            await msg.edit(content=f"✅ Successfully synchronized **{count}** slash commands!")
+            await msg.edit(content=f"✅ Successfully synchronized **{count}** global slash commands!")
     except discord.HTTPException as e:
         if e.status == 429:
             await msg.edit(content=f"⏳ Discord is currently rate-limiting command updates. Please wait a few minutes before trying again.\n`{e}`")
@@ -637,11 +691,62 @@ async def cmd_sync(ctx: commands.Context, mode: str = None):
         await msg.edit(content=f"❌ Failed to sync commands: `{e}`")
 
 
+# ── Invite Command ────────────────────────────────────────────────────────────
+@bot.command(name="invite")
+async def cmd_invite(ctx: commands.Context):
+    """Get the official bot invite link with slash command permissions."""
+    client_id = bot.user.id if bot.user else "1560655249276936192"
+    url = f"https://discord.com/api/oauth2/authorize?client_id={client_id}&permissions=8&scope=bot%20applications.commands"
+    embed = discord.Embed(
+        title="🤖 Invite Nexus to Your Server",
+        description=(
+            f"[**Click here to invite Nexus**]({url})\n\n"
+            "✨ **Important Note for Slash Commands (`/`):**\n"
+            "• This link includes both `bot` and `applications.commands` scopes.\n"
+            "• If Nexus is already in a server and slash commands are not showing, open the link and re-authorize it to enable slash commands (you do not need to kick the bot)."
+        ),
+        color=0x5865F2,
+    )
+    await ctx.reply(embed=embed)
+
+
 # ── Guild Join ────────────────────────────────────────────────────────────────
 @bot.event
 async def on_guild_join(guild: discord.Guild):
     """Fired whenever the bot joins a new server."""
     log.info(f"Joined new guild: {guild.name} (ID: {guild.id})")
+
+    # Send an onboarding message explaining setup and slash command usage
+    target_ch = guild.system_channel
+    if not target_ch or not target_ch.permissions_for(guild.me).send_messages:
+        target_ch = next(
+            (c for c in guild.text_channels if c.permissions_for(guild.me).send_messages),
+            None,
+        )
+
+    if target_ch:
+        client_id = bot.user.id if bot.user else "1560655249276936192"
+        reauth_url = f"https://discord.com/api/oauth2/authorize?client_id={client_id}&permissions=8&scope=bot%20applications.commands"
+        embed = discord.Embed(
+            title="👋 Thanks for adding Nexus!",
+            description=(
+                f"Nexus is now active in **{guild.name}**! ⚡\n\n"
+                "**Quick Setup:**\n"
+                "• Configure bot management role: `/set-botrole` (Server Owner only)\n"
+                "• Set up server audit logs: `/setup-logs`\n"
+                "• All commands list: `/help` or `n!help`\n\n"
+                "💡 **Slash commands (`/`) not showing up?**\n"
+                f"1. Make sure Nexus was invited with both `bot` and `applications.commands` scopes. If not, [click here to re-authorize]({reauth_url}).\n"
+                "2. Press `Ctrl + R` (desktop) or restart Discord (mobile) to refresh your command cache.\n"
+                "3. Ensure the **Use Application Commands** permission is enabled in server/channel role settings."
+            ),
+            color=0x5865F2,
+        )
+        embed.set_footer(text="Nexus — All-Purpose Discord Bot")
+        try:
+            await target_ch.send(embed=embed)
+        except Exception:
+            pass
 
 
 # ── Member Join ───────────────────────────────────────────────────────────────
@@ -755,6 +860,12 @@ async def start_dummy_webserver(port: int):
 
 # ── Load Cogs & Launch Bot ────────────────────────────────────────────────────
 async def main():
+    disable_windows_quickedit()
+
+    # Pre-initialize database & load non-prefix users before cogs load
+    await init_db()
+    await load_non_prefix_users()
+
     web_runner = None
     # If deployed on a cloud host with $PORT (e.g. Render Web Service), bind HTTP port
     port_env = os.getenv("PORT") or (8080 if os.getenv("RENDER") else None)
