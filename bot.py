@@ -442,19 +442,8 @@ async def on_ready():
         ),
     )
     log.info(f"Logged in as {bot.user} ({bot.user.id})")
-    log.info(f"Loaded {len(bot.application_commands)} slash command definitions")
-
-    # Instantly sync slash commands to all connected guilds in background (0-delay visibility)
-    async def sync_guilds():
-        try:
-            guild_ids = [g.id for g in bot.guilds]
-            if guild_ids:
-                await bot.sync_commands(force=True, guild_ids=guild_ids, delete_existing=True)
-                log.info(f"Instantly synced slash commands across {len(guild_ids)} guild(s) ✓")
-        except Exception as e:
-            log.warning(f"Could not instant-sync commands to guilds: {e}")
-
-    asyncio.create_task(sync_guilds())
+    slash_count = len(bot.pending_application_commands) or len(bot.application_commands)
+    log.info(f"Loaded {slash_count} slash command definition(s) ✓")
 
 
 # ── Non-Prefix Management Logic ──────────────────────────────────────────────
@@ -614,31 +603,45 @@ async def cmd_np_group_list(ctx: commands.Context, *args):
 
 # ── Command Sync (Bot Owner Only) ─────────────────────────────────────────────
 @bot.command(name="sync")
-async def cmd_sync(ctx: commands.Context):
-    """Force re-sync all slash commands with Discord API (Bot Owner only)."""
+async def cmd_sync(ctx: commands.Context, mode: str = None):
+    """Sync slash commands with Discord (Bot Owner only).
+    Usage:
+      n!sync         - Synchronize global commands (safe, hash-checked)
+      n!sync guild   - Instantly sync commands to the current server (bypasses global rate limits)
+      n!sync force   - Force re-register all global commands
+    """
     if ctx.author.id != GLOBAL_OWNER_ID:
         return
-    msg = await ctx.reply("🔄 Synchronizing all slash commands with Discord...")
+
+    mode_lower = (mode or "").lower()
+    msg = await ctx.reply("🔄 Synchronizing slash commands with Discord...")
     try:
-        guild_ids = [g.id for g in ctx.bot.guilds]
-        if guild_ids:
-            await ctx.bot.sync_commands(force=True, guild_ids=guild_ids, delete_existing=True)
-        await ctx.bot.sync_commands(force=True, delete_existing=True)
-        await msg.edit(content=f"✅ Successfully synced **{len(ctx.bot.application_commands)}** slash commands instantly!\n💡 *Tip: If Discord still shows old commands, press `Ctrl + R` in your Discord app to refresh the client cache.*")
+        if mode_lower == "guild" and ctx.guild:
+            await ctx.bot.sync_commands(guild_ids=[ctx.guild.id], force=True)
+            count = len(ctx.bot.application_commands) or len(ctx.bot.pending_application_commands)
+            await msg.edit(content=f"✅ Instantly synced **{count}** slash commands to **{ctx.guild.name}**!\n💡 *Tip: If Discord still shows old commands, press `Ctrl + R` in your Discord app to refresh.*")
+        elif mode_lower == "force":
+            await ctx.bot.sync_commands(force=True, delete_existing=True)
+            count = len(ctx.bot.application_commands) or len(ctx.bot.pending_application_commands)
+            await msg.edit(content=f"✅ Force-synced **{count}** global slash commands!\n💡 *Tip: Global commands may take a few minutes to propagate across all servers.*")
+        else:
+            await ctx.bot.sync_commands()
+            count = len(ctx.bot.application_commands) or len(ctx.bot.pending_application_commands)
+            await msg.edit(content=f"✅ Successfully synchronized **{count}** slash commands!")
+    except discord.HTTPException as e:
+        if e.status == 429:
+            await msg.edit(content=f"⏳ Discord is currently rate-limiting command updates. Please wait a few minutes before trying again.\n`{e}`")
+        else:
+            await msg.edit(content=f"❌ Failed to sync commands: `{e}`")
     except Exception as e:
         await msg.edit(content=f"❌ Failed to sync commands: `{e}`")
 
 
-# ── Guild Join (Auto-sync slash commands to new servers) ───────────────────────
+# ── Guild Join ────────────────────────────────────────────────────────────────
 @bot.event
 async def on_guild_join(guild: discord.Guild):
-    """Automatically sync slash commands whenever the bot joins a new server."""
+    """Fired whenever the bot joins a new server."""
     log.info(f"Joined new guild: {guild.name} (ID: {guild.id})")
-    try:
-        await bot.sync_commands(force=True, guild_ids=[guild.id], delete_existing=True)
-        log.info(f"Instantly synced slash commands to new guild: {guild.name} ({guild.id}) ✓")
-    except Exception as e:
-        log.warning(f"Could not sync slash commands to new guild {guild.id}: {e}")
 
 
 # ── Member Join ───────────────────────────────────────────────────────────────
