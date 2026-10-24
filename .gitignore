@@ -2,7 +2,9 @@
 .env
 .env.*
 .env.local
+*.env
 !.env.example
+!*.env.example
 
 # SQLite Database & Journal / WAL
 *.db

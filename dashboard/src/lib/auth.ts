@@ -1,15 +1,12 @@
 import { NextAuthOptions } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
 
-const rawClientId = (process.env.DISCORD_CLIENT_ID || "1562069152024502275").trim();
+const rawClientId = (process.env.DISCORD_CLIENT_ID || "").trim();
 let clientSecret = (process.env.DISCORD_CLIENT_SECRET || "").trim();
 
 // Auto-sanitize: if client ID was accidentally appended to secret, strip it
-if (clientSecret.endsWith(rawClientId) && clientSecret.length > 32) {
+if (rawClientId && clientSecret.endsWith(rawClientId) && clientSecret.length > 32) {
   clientSecret = clientSecret.slice(0, -rawClientId.length).trim();
-}
-if (!clientSecret) {
-  clientSecret = "TXhvvpqgYjw0GVDRh0pV4vZYT-YSncPv";
 }
 
 export const authOptions: NextAuthOptions = {
