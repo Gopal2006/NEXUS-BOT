@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus Bot — Official Command Directory & Manual</title>
+  <meta name="description" content="Explore all 62 active Nexus Bot commands. Search, filter by permission tier or invocation mode, and copy exact syntax with one click.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090a0f;
+      --card: #11131c;
+      --subtle: #171a26;
+      --border: #222638;
+      --border-light: #2e344d;
+      --brand: #6366f1;
+      --brand-hover: #4f46e5;
+      --brand-light: #818cf8;
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --cyan: #06b6d4;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      padding-bottom: 5rem;
+    }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+    
+    /* Sticky Top Navigation Bar */
+    .top-bar {
+      height: 4.25rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(9, 10, 15, 0.88);
+      backdrop-filter: blur(14px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+    }
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+      color: white;
+    }
+    .logo-badge {
+      width: 2.4rem;
+      height: 2.4rem;
+      border-radius: 0.75rem;
+      background: linear-gradient(135deg, var(--brand) 0%, #4338ca 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 1.15rem;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+    }
+    .brand-info { display: flex; flex-direction: column; }
+    .brand-title { font-weight: 800; font-size: 1.1rem; line-height: 1.2; letter-spacing: -0.02em; }
+    .brand-subtitle { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .nav-actions { display: flex; align-items: center; gap: 0.75rem; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.55rem 1.1rem;
+      border-radius: 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .btn-brand {
+      background: var(--brand);
+      color: white;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+    }
+    .btn-brand:hover { background: var(--brand-hover); }
+    .btn-subtle {
+      background: var(--subtle);
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-subtle:hover { background: var(--border); color: white; }
+
+    /* Hero Banner */
+    .hero {
+      background: linear-gradient(135deg, #11131c 0%, #161826 60%, rgba(99, 102, 241, 0.12) 100%);
+      border: 1px solid var(--border);
+      border-radius: 1.5rem;
+      padding: 2.5rem 2.25rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 250px;
+      height: 250px;
+      background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.3rem 0.85rem;
+      border-radius: 9999px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: var(--brand-light);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+    .hero h1 { font-size: 2.25rem; font-weight: 900; color: white; margin-bottom: 0.6rem; letter-spacing: -0.03em; }
+    .hero p { color: var(--text-muted); font-size: 0.95rem; max-width: 780px; line-height: 1.6; }
+
+    /* Metric Highlights Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1.75rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .metric-card {
+      background: var(--subtle);
+      border: 1px solid var(--border);
+      border-radius: 0.85rem;
+      padding: 1rem 1.25rem;
+    }
+    .metric-card .label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .metric-card .val { font-size: 1.6rem; font-weight: 900; color: white; margin-top: 0.25rem; }
+
+    /* Controls & Filter Bar */
+    .controls { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+    .search-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .search-wrap {
+      flex: 1;
+      min-width: 280px;
+      position: relative;
+    }
+    .search-input {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 0.85rem;
+      padding: 0.8rem 1rem 0.8rem 2.5rem;
+      color: white;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+    .search-input:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+    .search-icon {
+      position: absolute;
+      left: 0.9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    .select-dropdown {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 0.85rem;
+      padding: 0.8rem 1.1rem;
+      color: var(--text);
+      font-size: 0.8rem;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+      transition: border 0.2s;
+    }
+    .select-dropdown:focus { border-color: var(--brand); }
+
+    /* Category Filter Pills */
+    .category-pills {
+      display: flex;
+      gap: 0.45rem;
+      overflow-x: auto;
+      padding-bottom: 0.35rem;
+    }
+    .pill {
+      padding: 0.45rem 0.95rem;
+      border-radius: 0.7rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .pill:hover { color: white; background: var(--subtle); border-color: var(--border-light); }
+    .pill.active {
+      background: var(--brand);
+      color: white;
+      border-color: var(--brand);
+      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.35);
+    }
+    .pill-count {
+      font-size: 0.65rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Results Bar */
+    .results-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* Command Card */
+    .cmd-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 1.15rem;
+      padding: 1.35rem;
+      margin-bottom: 1rem;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+    .cmd-card:hover {
+      border-color: var(--border-light);
+      transform: translateY(-1px);
+    }
+
+    .cmd-header {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .cmd-top-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .cmd-identity {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .cmd-name {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: white;
+      background: var(--subtle);
+      border: 1px solid var(--border);
+      padding: 0.25rem 0.75rem;
+      border-radius: 0.6rem;
+    }
+    .badge-tier {
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      border: 1px solid transparent;
+    }
+    .tier-public { background: rgba(16, 185, 129, 0.12); color: #34d399; border-color: rgba(16, 185, 129, 0.25); }
+    .tier-staff { background: rgba(99, 102, 241, 0.12); color: var(--brand-light); border-color: rgba(99, 102, 241, 0.25); }
+    .tier-owner { background: rgba(245, 158, 11, 0.12); color: #fbbf24; border-color: rgba(245, 158, 11, 0.25); }
+
+    .badge-type {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 0.45rem;
+      background: var(--subtle);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .badge-type.slash { color: var(--brand-light); border-color: rgba(99, 102, 241, 0.3); }
+    .badge-type.prefix { color: #34d399; border-color: rgba(16, 185, 129, 0.3); }
+    .badge-type.non_prefix { color: #f59e0b; border-color: rgba(245, 158, 11, 0.3); }
+
+    .cmd-desc { font-size: 0.875rem; color: #cbd5e1; line-height: 1.5; margin: 0.5rem 0 0.85rem; }
+    
+    .syntax-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.6rem;
+    }
+    @media (min-width: 768px) {
+      .syntax-row { grid-template-columns: 1fr 1fr; }
+    }
+
+    .code-box {
+      background: var(--subtle);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      font-size: 0.75rem;
+    }
+    .code-content {
+      color: var(--brand-light);
+      overflow-x: auto;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .btn-copy {
+      padding: 0.35rem 0.7rem;
+      border-radius: 0.5rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .btn-copy:hover { border-color: var(--brand); color: white; background: rgba(99, 102, 241, 0.15); }
+    .btn-copy.copied { background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: #10b981; }
+
+    /* Collapsible Details Drawer */
+    .details-toggle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.85rem;
+      user-select: none;
+      font-weight: 600;
+      transition: color 0.15s;
+    }
+    .details-toggle:hover { color: white; }
+    .details-drawer {
+      margin-top: 0.75rem;
+      background: rgba(23, 26, 38, 0.85);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 0.85rem 1rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: none;
+      line-height: 1.5;
+    }
+    .details-drawer.open { display: block; }
+    .details-title { font-weight: 700; color: white; margin-bottom: 0.35rem; display: block; }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #11131c;
+      border: 1px solid var(--brand);
+      color: white;
+      padding: 0.75rem 1.25rem;
+      border-radius: 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .empty-results {
+      text-align: center;
+      padding: 4rem 1rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 1.25rem;
+      color: var(--text-muted);
+    }
+    .empty-results h3 { font-size: 1.15rem; color: white; margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+
+  <!-- Sticky Top Navigation -->
+  <header class="top-bar">
+    <a href="/" class="brand-wrap">
+      <div class="logo-badge">N</div>
+      <div class="brand-info">
+        <span class="brand-title">Nexus Commands</span>
+        <span class="brand-subtitle">Official Directory</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="/" class="btn btn-subtle">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Open Dashboard</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Hero Banner -->
+    <section class="hero">
+      <div class="hero-tag">⚡ Official Command Encyclopedia</div>
+      <h1>Nexus Command Directory & Manual</h1>
+      <p>
+        Explore the complete verified suite of <strong>46 active commands</strong> across Moderation, Support Tickets, Leveling, Multi-Player Mini-Games, Announcements, and Utility. Filter by category, permission tier, or invocation mode, and copy exact command syntax with one click.
+      </p>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="label">Total Commands</div>
+          <div class="val" id="metric-total">46</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">Active Categories</div>
+          <div class="val" id="metric-categories">7</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">Invocation Modes</div>
+          <div class="val">3 Types</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">Access Security</div>
+          <div class="val" style="color: var(--emerald); font-size: 1.25rem; margin-top: 0.5rem;">Bot-Role Guard</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Controls & Filters -->
+    <div class="controls">
+      <div class="search-row">
+        <div class="search-wrap">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="search-box" class="search-input" placeholder="Search commands, syntax, keywords (e.g. mute, timeout, rps, softban, ticket, poll)..." oninput="renderCommands()">
+        </div>
+        <select id="tier-filter" class="select-dropdown" onchange="renderCommands()">
+          <option value="all">All Permission Tiers</option>
+          <option value="public">Public (Everyone)</option>
+          <option value="staff">Staff (Bot-Role Required)</option>
+          <option value="owner">Server Owner Only</option>
+        </select>
+        <select id="type-filter" class="select-dropdown" onchange="renderCommands()">
+          <option value="all">All Invocation Modes</option>
+          <option value="slash">Slash Commands (/)</option>
+          <option value="prefix">Prefix Commands (n!)</option>
+          <option value="non_prefix">Non-Prefix Supported</option>
+        </select>
+      </div>
+
+      <!-- Categories Pills -->
+      <div class="category-pills" id="category-pills"></div>
+    </div>
+
+    <!-- Results Count Bar -->
+    <div class="results-bar">
+      <span id="results-count">Showing 46 commands</span>
+    </div>
+
+    <!-- Commands List Container -->
+    <div id="commands-list"></div>
+  </main>
+
+  <!-- Interactive Toast Notification -->
+  <div id="toast" class="toast">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="toast-msg">Copied to clipboard!</span>
+  </div>
+
+  <script>
+    const COMMANDS = [
+      // ── Admin & Setup ────────────────────────────────────────────────────────
+      {
+        id: "setupbot",
+        name: "/setupbot",
+        category: "Admin & Setup",
+        tier: "staff",
+        type: ["slash"],
+        syntax: "/setupbot",
+        example: "/setupbot",
+        desc: "Automatically provisions the '📁 NEXUS LOGS' category with 4 private audit channels: 'mod-logs', 'server-logs', 'activity-logs', and 'cmd-logs' and binds them in the database.",
+        outcome: "Confirmation embed verifying the auto-configuration of all 4 logging channels."
+      },
+      {
+        id: "set-botrole",
+        name: "/set-botrole",
+        category: "Admin & Setup",
+        tier: "owner",
+        type: ["slash"],
+        syntax: "/set-botrole <role>",
+        example: "/set-botrole role:@Staff",
+        desc: "Designates the staff role that has permission to run Nexus management commands. If already configured, prompts to run /remove-botrole first.",
+        outcome: "Bot management commands locked strictly to members with this role."
+      },
+      {
+        id: "remove-botrole",
+        name: "/remove-botrole",
+        category: "Admin & Setup",
+        tier: "owner",
+        type: ["slash"],
+        syntax: "/remove-botrole",
+        example: "/remove-botrole",
+        desc: "Removes the bot manager role restriction, restricting bot management commands solely to the Server Owner.",
+        outcome: "Confirmation embed; bot role cleared."
+      },
+      {
+        id: "set-welcome",
+        name: "/set-welcome",
+        category: "Admin & Setup",
+        tier: "staff",
+        type: ["slash"],
+        syntax: "/set-welcome <channel> [message]",
+        example: "/set-welcome channel:#welcome message:Welcome {mention} to {guild}!",
+        desc: "Configures greeting channel and welcome message template with variable placeholders ({mention}, {name}, {guild}).",
+        outcome: "Preview welcome embed posted and channel bound."
+      },
+      {
+        id: "set-leave",
+        name: "/set-leave",
+        category: "Admin & Setup",
+        tier: "staff",
+        type: ["slash"],
+        syntax: "/set-leave <channel> [message]",
+        example: "/set-leave channel:#goodbye message:{name} left the server.",
+        desc: "Sets farewell channel and departure announcement template ({name}, {guild}).",
+        outcome: "Leave notification system enabled."
+      },
+      {
+        id: "set-log",
+        name: "/set-log",
+        category: "Admin & Setup",
+        tier: "staff",
+        type: ["slash"],
+        syntax: "/set-log <channel>",
+        example: "/set-log channel:#mod-logs",
+        desc: "Manually designates the central moderation actions log channel.",
+        outcome: "Moderation actions directed to this channel."
+      },
+      {
+        id: "config",
+        name: "/config",
+        category: "Admin & Setup",
+        tier: "staff",
+        type: ["slash"],
+        syntax: "/config",
+        example: "/config",
+        desc: "Displays an informative, minimal overview of active channel bindings, staff roles, and logging status.",
+        outcome: "Minimal server configuration status card."
+      },
+
+      // ── Moderation ───────────────────────────────────────────────────────────
+      {
+        id: "kick",
+        name: "/kick",
+        category: "Moderation",
+        tier: "staff",
+        type: ["slash", "prefix", "non_prefix"],
+        syntax: "/kick <member> <reason> | n!kick <@member> <reason>",
+        example: "/kick member:@User reason:Disruptive in chat",
+        desc: "Kicks a member from the server, dispatches a direct message notification with the reason, and records an immutable Case ID.",
+        outcome: "Target member ejected from server + Case logged in mod-logs."
+      },
+      {
+        id: "ban",
+        name: "/ban",
+        category: "Moderation",
+        tier: "staff",
+        type: ["slash", "prefix", "non_prefix"],
+        syntax: "/ban <member> <reason> [delete_days] | n!ban <@member> <reason>",
+        example: "/ban member:@Raider reason:Raid attempt delete_days:1",
+        desc: "Permanently bans a member from the guild with mandatory reason and optional message pruning (0 to 7 days).",
+        outcome: "Member banned from guild + recent messages purged + Case logged."
+      },
+      {
+        id: "unban",
+        name: "/unban",
+        category: "Moderation",
+        tier: "staff",
+        type: ["slash", "prefix"],
+        syntax: "/unban <user_id> [reason] | n!unban <user_id> [reason]",
+        example: "/unban user_id:1201050377911554061 reason:Appeal accepted",
+        desc: "Revokes a guild ban by numerical Discord user ID.",
+        outcome: "Ban revoked; user can re-join the server."
+      },
+      {
+        id: "softban",
+        name: "/softban",
+        category: "Moderation",
+        tier: "staff",
+        type: ["slash", "prefix"],
+        syntax: "/softban <member> <reason> | n!softban <@member> <reason>",
+        example: "/softban member:@Spammer reason:Wipe spam messages",
+        desc: "Bans and immediately unbans a member to prune 1 day of messages without keeping them banned. Reason is strictly mandatory.",
+        outcome: "Target messages purged + target kicked but permitted to re-join."
+      },
+      {
+        id: "mute",
+        name: "/mute",
+        category: "Moderation",
+        tier: "staff",
+        type: ["slash", "prefix", "non_prefix"],
+        syntax: "/mute <member> <reason> [duration] | n!mute <@member> <reason> [duration]",
+        example: "/mute member:@Troublemaker reason:Harassment duration:15m",
+        desc: "Applies Discord timeout to target member (default 10m). Reason is strictly mandatory.",
+        outcome: "Target restricted from sending messages/speaking for duration."
+      },
+      {
+        id: "unmute",
+        name: "/unmute",
+        category: "Moderation",
+        tier: "staff",
+        type: ["slash", "prefix", "non_prefix"],
+        syntax: "/unmute <member> [reason] | n!unmute <@member> [reason]",
+        example: "/unmute member:@User reason:Issue settled",
+        desc: "Prematurely removes an active timeout from a member.",
+        outcome: "Member timeout lifted."
+      },
+      {
+        id: "warn",
+        name: "/warn",
+        category: "Moderation",
+        tier: "staff",
+        type: ["slash", "prefix", "non_prefix"],
+        syntax: "/warn <member> <reason> | n!warn <@member> <reason>",
+        example: "/warn member:@User reason:Spamming emotes",
+        desc: "Records a formal infraction warning against the member, sends DM notice, and logs to mod-logs.",
+        outcome: "Warning incremented and saved to member audit record."
+      },
+      {
+        id: "warnings",
+        name: "/warnings",
+        category: "Moderation",
+        tier: "staff",
+        type: ["slash", "prefix"],
+        syntax: "/warnings <member> | n!warnings <@member>",
+        example: "/warnings member:@User",
+        desc: "Displays the active warning infractions history for the target member.",
+        outcome: "Embed listing warning cases with dates and moderators."
+      },
+      {
+        id: "clearwarns",
+        name: "/clearwarns",
+        category: "Moderation",
+        tier: "staff",
+        type: ["slash", "prefix"],
+        syntax: "/clearwarns <member> | n!clearwarns <@member>",
+        example: "/clearwarns member:@User",
+        desc: "Wipes all recorded warning infractions for the target member.",
+        outcome: "Target warnings reset to 0."
+      },
+      {
+        id: "purge",
+        name: "/purge",
+        category: "Moderation",
+        tier: "staff",
+        type: ["slash", "prefix", "non_prefix"],
+        syntax: "/purge <amount> [member] | n!purge <amount>",
+        example: "/purge amount:25",
+        desc: "Bulk deletes up to 100 recent messages from the current channel, with optional user filter.",
+        outcome: "Specified messages deleted + ephemeral audit response."
+      },
+      {
+        id: "slowmode",
+        name: "/slowmode",
+        category: "Moderation",
+        tier: "staff",
+        type: ["slash", "prefix"],
+        syntax: "/slowmode <seconds> | n!slowmode <seconds>",
+        example: "/slowmode seconds:5",
+        desc: "Adjusts slowmode delay on current channel (0 to 21600 seconds). Use 0 to disable.",
+        outcome: "Channel rate limit updated."
+      },
+      {
+        id: "lockdown",
+        name: "/lockdown",
+        category: "Moderation",
+        tier: "owner",
+        type: ["slash", "prefix"],
+        syntax: "/lockdown [channel] [reason] | n!lockdown [channel] [reason]",
+        example: "/lockdown channel:#general reason:Server raid defense",
+        desc: "Locks down channel by revoking Send Messages permission for @everyone. Restricted to Server Owner.",
+        outcome: "Channel locked."
+      },
+      {
+        id: "unlockdown",
+        name: "/unlockdown",
+        category: "Moderation",
+        tier: "owner",
+        type: ["slash", "prefix"],
+        syntax: "/unlockdown [channel] | n!unlockdown [channel]",
+        example: "/unlockdown channel:#general",
+        desc: "Reopens a locked channel by restoring Send Messages permission. Restricted to Server Owner.",
+        outcome: "Channel unlocked."
+      },
+      {
+        id: "nick",
+        name: "/nick",
+        category: "Moderation",
+        tier: "staff",
+        type: ["slash", "prefix"],
+        syntax: "/nick <member> [nickname] | n!nick <@member> [nickname]",
+        example: "/nick member:@User nickname:NexusStaff",
+        desc: "Changes a member's server display nickname, or resets it to default if omitted.",
+        outcome: "Nickname updated in member list."
+      },
+      {
+        id: "role-add-remove",
+        name: "/role",
+        category: "Moderation",
+        tier: "staff",
+        type: ["slash", "prefix"],
+        syntax: "/role add <member> <role> | /role remove <member> <role> | n!role add | n!role remove",
+        example: "/role add member:@User role:@VIP",
+        desc: "Assigns or strips a specific role from the target member, verifying role hierarchy.",
+        outcome: "Role modified on target member."
+      },
+
+      // ── Tickets ──────────────────────────────────────────────────────────────
+      {
+        id: "ticket-panel",
+        name: "/ticket-panel",
+        category: "Tickets",
+        tier: "staff",
+        type: ["slash"],
+        syntax: "/ticket-panel [channel] [title] [description]",
+        example: "/ticket-panel channel:#support title:Open a Support Ticket",
+        desc: "Posts a persistent ticket dispatch panel with interactive 'Create Ticket' button.",
+        outcome: "Support intake embed deployed in channel."
+      },
+      {
+        id: "ticket-close",
+        name: "/ticket close",
+        category: "Tickets",
+        tier: "staff",
+        type: ["slash", "prefix"],
+        syntax: "/ticket close [reason] | n!ticket close [reason]",
+        example: "/ticket close reason:Issue resolved",
+        desc: "Closes active ticket channel, generates HTML transcript, and archives it. Only staff holding Bot-Role or Server Owner can close.",
+        outcome: "Ticket closed + transcript archived + channel deleted."
+      },
+      {
+        id: "ticket-add",
+        name: "/ticket add",
+        category: "Tickets",
+        tier: "staff",
+        type: ["slash", "prefix"],
+        syntax: "/ticket add <member> | n!ticket add <@member>",
+        example: "/ticket add member:@Expert",
+        desc: "Grants a user permission to view and speak in the active ticket channel.",
+        outcome: "Target user added to ticket."
+      },
+      {
+        id: "ticket-remove",
+        name: "/ticket remove",
+        category: "Tickets",
+        tier: "staff",
+        type: ["slash", "prefix"],
+        syntax: "/ticket remove <member> | n!ticket remove <@member>",
+        example: "/ticket remove member:@User",
+        desc: "Removes user access from the current ticket channel.",
+        outcome: "Target user removed from ticket."
+      },
+
+      // ── Leveling ─────────────────────────────────────────────────────────────
+      {
+        id: "rank",
+        name: "/rank",
+        category: "Leveling",
+        tier: "public",
+        type: ["slash", "prefix"],
+        syntax: "/rank [member] | n!rank [@member]",
+        example: "/rank member:@User",
+        desc: "Displays leveling card showing level, current XP, progress bar toward next rank, and server leaderboard standing.",
+        outcome: "Rich rank card embed."
+      },
+      {
+        id: "leaderboard",
+        name: "/leaderboard",
+        category: "Leveling",
+        tier: "public",
+        type: ["slash", "prefix"],
+        syntax: "/leaderboard [page] | n!leaderboard [page]",
+        example: "/leaderboard page:1",
+        desc: "Shows top 10 ranked server members by XP with interactive pagination.",
+        outcome: "Top XP leaderboard embed."
+      },
+      {
+        id: "level-toggle",
+        name: "/level-toggle",
+        category: "Leveling",
+        tier: "staff",
+        type: ["slash"],
+        syntax: "/level-toggle <status>",
+        example: "/level-toggle status:enable",
+        desc: "Enables or disables chat and voice XP accumulation across the server.",
+        outcome: "XP tracking status toggled."
+      },
+      {
+        id: "level-channel",
+        name: "/level-channel",
+        category: "Leveling",
+        tier: "staff",
+        type: ["slash"],
+        syntax: "/level-channel <channel>",
+        example: "/level-channel channel:#level-ups",
+        desc: "Sets a designated announcement channel for member level-up messages.",
+        outcome: "Level announcements redirected."
+      },
+      {
+        id: "add-level-reward",
+        name: "/add-level-reward",
+        category: "Leveling",
+        tier: "staff",
+        type: ["slash"],
+        syntax: "/add-level-reward <level> <role>",
+        example: "/add-level-reward level:10 role:@Veteran",
+        desc: "Configures an automated role unlock reward given to users when reaching a milestone level.",
+        outcome: "Level role reward registered."
+      },
+
+      // ── Engagement & Polls ───────────────────────────────────────────────────
+      {
+        id: "poll",
+        name: "/poll",
+        category: "Engagement & Polls",
+        tier: "staff",
+        type: ["slash", "prefix"],
+        syntax: "/poll <question> <option1> <option2> ... [duration] | n!poll",
+        example: "/poll question:Next event? option1:Gaming option2:Movie duration:2h",
+        desc: "Creates an interactive poll featuring native Discord UI buttons and live vote tallying.",
+        outcome: "Interactive poll posted."
+      },
+      {
+        id: "giveaway-start",
+        name: "/gstart",
+        category: "Engagement & Polls",
+        tier: "staff",
+        type: ["slash", "prefix"],
+        syntax: "/gstart <duration> <winners> <prize> [channel] | n!gstart",
+        example: "/gstart duration:1d winners:2 prize:Discord Nitro channel:#giveaways",
+        desc: "Launches an automated giveaway with interactive join button, countdown timer, and audit logging.",
+        outcome: "Active giveaway embed posted."
+      },
+      {
+        id: "giveaway-end",
+        name: "/gend",
+        category: "Engagement & Polls",
+        tier: "staff",
+        type: ["slash"],
+        syntax: "/gend <message_id>",
+        example: "/gend message_id:123456789012345678",
+        desc: "Prematurely ends an ongoing giveaway and rolls winning entrants.",
+        outcome: "Winners announced in channel."
+      },
+      {
+        id: "giveaway-reroll",
+        name: "/greroll",
+        category: "Engagement & Polls",
+        tier: "staff",
+        type: ["slash"],
+        syntax: "/greroll <message_id>",
+        example: "/greroll message_id:123456789012345678",
+        desc: "Re-rolls new random winner(s) from existing entrants of an ended giveaway.",
+        outcome: "New winner announced."
+      },
+      {
+        id: "announce",
+        name: "/announce",
+        category: "Engagement & Polls",
+        tier: "staff",
+        type: ["slash"],
+        syntax: "/announce <channel> <title> <message> [color] [ping]",
+        example: "/announce channel:#announcements title:Server Update message:Maintenance complete!",
+        desc: "Broadcasts a formatted rich embed announcement with optional @everyone or @here mention.",
+        outcome: "Official announcement published."
+      },
+      {
+        id: "dm-user",
+        name: "/dm-user",
+        category: "Engagement & Polls",
+        tier: "staff",
+        type: ["slash"],
+        syntax: "/dm-user <member> <message> [title]",
+        example: "/dm-user member:@User message:Please check the rules channel",
+        desc: "Sends a direct message embed to a specific user on behalf of server staff, tracking operator in mod-logs.",
+        outcome: "Direct message delivered + receipt logged."
+      },
+      {
+        id: "dm-role",
+        name: "/dm-role",
+        category: "Engagement & Polls",
+        tier: "owner",
+        type: ["slash"],
+        syntax: "/dm-role <role> <message> [title]",
+        example: "/dm-role role:@Staff message:Staff meeting today at 8 PM",
+        desc: "Broadcasts a direct message to all members holding a specified role. Restricted to Server Owner.",
+        outcome: "Batch DM broadcast executed with delivery tally."
+      },
+      {
+        id: "autorole-view",
+        name: "/autorole view",
+        category: "Engagement & Polls",
+        tier: "staff",
+        type: ["slash"],
+        syntax: "/autorole view",
+        example: "/autorole view",
+        desc: "Displays current member autorole assigned to newly joined human members.",
+        outcome: "Embed showing active autorole assignment."
+      },
+
+      // ── Mini-Games ───────────────────────────────────────────────────────────
+      {
+        id: "rps",
+        name: "/rps",
+        category: "Mini-Games",
+        tier: "public",
+        type: ["slash", "prefix"],
+        syntax: "/rps [choice] [opponent] | n!rps [opponent]",
+        example: "/rps opponent:@Friend",
+        desc: "Rock-Paper-Scissors. Play solo against the bot or challenge another member to a 2-player multiplayer showdown with hidden choices.",
+        outcome: "Interactive RPS game board."
+      },
+      {
+        id: "tictactoe",
+        name: "/tictactoe",
+        category: "Mini-Games",
+        tier: "public",
+        type: ["slash", "prefix"],
+        syntax: "/tictactoe <opponent> | n!tictactoe <@opponent>",
+        example: "/tictactoe opponent:@Rival",
+        desc: "Challenges another server member to an interactive 3x3 Tic-Tac-Toe match using Discord button components.",
+        outcome: "Live interactive 3x3 game board."
+      },
+      {
+        id: "coinflip",
+        name: "/coinflip",
+        category: "Mini-Games",
+        tier: "public",
+        type: ["slash", "prefix"],
+        syntax: "/coinflip [guess] | n!coinflip [heads|tails]",
+        example: "/coinflip guess:heads",
+        desc: "Flips a virtual coin with animated outcome and optional heads/tails guess.",
+        outcome: "Heads or Tails flip result embed."
+      },
+      {
+        id: "roll",
+        name: "/roll",
+        category: "Mini-Games",
+        tier: "public",
+        type: ["slash", "prefix"],
+        syntax: "/roll [dice] [sides] | n!roll [sides]",
+        example: "/roll dice:2 sides:20",
+        desc: "Rolls specified number of polyhedral dice with custom sides (e.g. 2d20).",
+        outcome: "Calculated dice roll result with individual dice outcomes."
+      },
+      {
+        id: "guess",
+        name: "/guess",
+        category: "Mini-Games",
+        tier: "public",
+        type: ["slash", "prefix"],
+        syntax: "/guess | n!guess",
+        example: "/guess",
+        desc: "Single-message Guess The Number game (1-100). Updates the existing message in-place with hints rather than sending new messages.",
+        outcome: "Interactive guessing session with in-place hints."
+      },
+
+      // ── Utility & System ─────────────────────────────────────────────────────
+      {
+        id: "help",
+        name: "/help",
+        category: "Utility & System",
+        tier: "staff",
+        type: ["slash", "prefix"],
+        syntax: "/help [category] | n!help [category]",
+        example: "/help category:moderation",
+        desc: "Displays the comprehensive staff command manual with interactive category dropdown selector.",
+        outcome: "Interactive command encyclopedia embed."
+      },
+      {
+        id: "serverinfo",
+        name: "/serverinfo",
+        category: "Utility & System",
+        tier: "public",
+        type: ["slash", "prefix"],
+        syntax: "/serverinfo | n!serverinfo",
+        example: "/serverinfo",
+        desc: "Displays rich guild overview card: demographics (humans vs bots), channel breakdown, verification level, Nitro tier, and creation date.",
+        outcome: "Rich server demographics embed."
+      }
+    ];
+
+    let currentCategory = "All";
+    const expandedCards = new Set();
+
+    function initCategoryPills() {
+      const categories = ["All", ...new Set(COMMANDS.map(c => c.category))];
+      const container = document.getElementById("category-pills");
+      container.innerHTML = "";
+
+      const totalEl = document.getElementById("metric-total");
+      if (totalEl) totalEl.innerText = COMMANDS.length;
+      const catEl = document.getElementById("metric-categories");
+      if (catEl) catEl.innerText = categories.length - 1;
+
+      categories.forEach(cat => {
+        const count = cat === "All" ? COMMANDS.length : COMMANDS.filter(c => c.category === cat).length;
+        const btn = document.createElement("button");
+        btn.className = `pill ${cat === currentCategory ? 'active' : ''}`;
+        btn.innerHTML = `<span>${cat}</span><span class="pill-count">${count}</span>`;
+        btn.onclick = () => {
+          currentCategory = cat;
+          document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+          btn.classList.add("active");
+          renderCommands();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    function copyToClipboard(text, btnElement, label) {
+      navigator.clipboard.writeText(text).then(() => {
+        if (btnElement) {
+          const origText = btnElement.innerText;
+          btnElement.innerText = "Copied ✓";
+          btnElement.classList.add("copied");
+          setTimeout(() => {
+            btnElement.innerText = origText;
+            btnElement.classList.remove("copied");
+          }, 1800);
+        }
+        showToast(`Copied ${label || 'syntax'} to clipboard!`);
+      }).catch(() => {
+        showToast("Press Ctrl+C to copy");
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      document.getElementById("toast-msg").innerText = msg;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    function toggleDetails(id) {
+      const drawer = document.getElementById(`details-${id}`);
+      const btn = document.getElementById(`toggle-btn-${id}`);
+      if (!drawer) return;
+
+      if (expandedCards.has(id)) {
+        expandedCards.delete(id);
+        drawer.classList.remove("open");
+        if (btn) btn.innerHTML = "<span>View Details & Expected Outcome</span> ▾";
+      } else {
+        expandedCards.add(id);
+        drawer.classList.add("open");
+        if (btn) btn.innerHTML = "<span>Hide Details</span> ▴";
+      }
+    }
+
+    function renderCommands() {
+      const query = (document.getElementById("search-box").value || "").toLowerCase().trim();
+      const tierFilter = document.getElementById("tier-filter").value;
+      const typeFilter = document.getElementById("type-filter").value;
+
+      const filtered = COMMANDS.filter(cmd => {
+        if (currentCategory !== "All" && cmd.category !== currentCategory) return false;
+        if (tierFilter !== "all" && cmd.tier !== tierFilter) return false;
+        if (typeFilter !== "all" && !cmd.type.includes(typeFilter)) return false;
+
+        if (query) {
+          const matchName = cmd.name.toLowerCase().includes(query);
+          const matchDesc = cmd.desc.toLowerCase().includes(query);
+          const matchSyntax = cmd.syntax.toLowerCase().includes(query);
+          const matchExample = cmd.example.toLowerCase().includes(query);
+          const matchCategory = cmd.category.toLowerCase().includes(query);
+          if (!matchName && !matchDesc && !matchSyntax && !matchExample && !matchCategory) return false;
+        }
+        return true;
+      });
+
+      document.getElementById("results-count").innerText = `Showing ${filtered.length} of ${COMMANDS.length} commands`;
+
+      const list = document.getElementById("commands-list");
+      if (filtered.length === 0) {
+        list.innerHTML = `
+          <div class="empty-results">
+            <h3>No matching commands found</h3>
+            <p>Try searching for a different keyword or resetting your category and tier filters.</p>
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = filtered.map(cmd => {
+        const tierLabels = {
+          public: "Public (Everyone)",
+          staff: "Staff Bot-Role",
+          owner: "Server Owner"
+        };
+        const tierClasses = {
+          public: "tier-public",
+          staff: "tier-staff",
+          owner: "tier-owner"
+        };
+
+        const typeBadges = cmd.type.map(t => {
+          if (t === "slash") return `<span class="badge-type slash">Slash (/)</span>`;
+          if (t === "prefix") return `<span class="badge-type prefix">Prefix (n!)</span>`;
+          if (t === "non_prefix") return `<span class="badge-type non_prefix">Non-Prefix</span>`;
+          return "";
+        }).join(" ");
+
+        const isOpen = expandedCards.has(cmd.id);
+
+        return `
+          <div class="cmd-card" id="card-${cmd.id}">
+            <div class="cmd-header">
+              <div class="cmd-top-row">
+                <div class="cmd-identity">
+                  <span class="cmd-name mono">${cmd.name}</span>
+                  <span class="badge-tier ${tierClasses[cmd.tier]}">${tierLabels[cmd.tier]}</span>
+                  ${typeBadges}
+                </div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">${cmd.category}</span>
+              </div>
+
+              <p class="cmd-desc">${cmd.desc}</p>
+
+              <div class="syntax-row">
+                <div class="code-box">
+                  <span class="code-content mono" title="${cmd.syntax}">${cmd.syntax}</span>
+                  <button class="btn-copy" onclick="copyToClipboard('${cmd.syntax.replace(/'/g, "\\'")}', this, 'syntax')">Copy Syntax</button>
+                </div>
+                <div class="code-box">
+                  <span class="code-content mono" title="${cmd.example}">${cmd.example}</span>
+                  <button class="btn-copy" onclick="copyToClipboard('${cmd.example.replace(/'/g, "\\'")}', this, 'example')">Copy Example</button>
+                </div>
+              </div>
+
+              <div class="details-toggle" id="toggle-btn-${cmd.id}" onclick="toggleDetails('${cmd.id}')">
+                <span>${isOpen ? "Hide Details" : "View Details & Expected Outcome"}</span> ${isOpen ? '▴' : '▾'}
+              </div>
+
+              <div class="details-drawer ${isOpen ? 'open' : ''}" id="details-${cmd.id}">
+                <span class="details-title">🎯 Expected Discord Behavior:</span>
+                <div>${cmd.outcome}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // Initialize
+    initCategoryPills();
+    renderCommands();
+  </script>
+</body>
+</html>

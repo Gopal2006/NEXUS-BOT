@@ -11,57 +11,22 @@ Feature: ticket creation shows a modal asking for issue details
          so staff have full context when they open the channel.
 """
 
+import io
 import discord
 from discord.ext import commands
 from discord import option
-import aiosqlite
 import asyncio
 from pathlib import Path
 
-DB_PATH = Path("nexus.db")
-GLOBAL_OWNER_ID = 1201050377911554061
-
-
-async def get_config(guild_id):
-    async with aiosqlite.connect(DB_PATH) as db:
-        db.row_factory = aiosqlite.Row
-        async with db.execute("SELECT * FROM guild_config WHERE guild_id=?", (guild_id,)) as cur:
-            row = await cur.fetchone()
-        if row is None:
-            await db.execute("INSERT INTO guild_config (guild_id) VALUES (?)", (guild_id,))
-            await db.commit()
-            async with db.execute("SELECT * FROM guild_config WHERE guild_id=?", (guild_id,)) as cur:
-                row = await cur.fetchone()
-        return dict(row)
-
-
-async def set_config(guild_id: int, **kwargs):
-    sets = ", ".join(f"{k} = ?" for k in kwargs)
-    vals = list(kwargs.values()) + [guild_id]
-    async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute(f"UPDATE guild_config SET {sets} WHERE guild_id = ?", vals)
-        await db.commit()
-
+from core.config import is_bot_owner
+from core.permissions import has_tier_permission, send_no_permission
+from db.database import get_config, set_config, get_db
 
 async def is_bot_admin(ctx) -> bool:
-    if ctx.author.id == GLOBAL_OWNER_ID:
-        return True
-    if ctx.author.id == ctx.guild.owner_id:
-        return True
-    cfg = await get_config(ctx.guild.id)
-    role_id = cfg.get("bot_role_id")
-    ticket_role_id = cfg.get("ticket_role_id")
-    user_roles = [r.id for r in ctx.author.roles]
-    if role_id and role_id in user_roles:
-        return True
-    if ticket_role_id and ticket_role_id in user_roles:
-        return True
-    # No admin fallback — server owner + bot/ticket role only
-    return False
-
+    return await has_tier_permission(ctx, tier="staff")
 
 async def can_close_ticket(member: discord.Member, guild: discord.Guild) -> bool:
-    if member.id in (GLOBAL_OWNER_ID, guild.owner_id):
+    if is_bot_owner(member.id) or member.id == guild.owner_id:
         return True
     cfg = await get_config(guild.id)
     bot_role_id    = cfg.get("bot_role_id")
@@ -73,37 +38,12 @@ async def can_close_ticket(member: discord.Member, guild: discord.Guild) -> bool
         return True
     return False
 
-
 async def no_perm(ctx):
-    """Ephemeral 'ask server owner for bot role' response."""
-    if ctx.guild is None:
-        embed = discord.Embed(
-            title="🔒 Access Denied",
-            description="Commands can only be used inside a server.",
-            color=0xED4245,
-        )
-        if hasattr(ctx, "respond"):
-            return await ctx.respond(embed=embed, ephemeral=True)
-        return await ctx.reply(embed=embed)
-
-    cfg = await get_config(ctx.guild.id)
-    role_id  = cfg.get("bot_role_id")
-    bot_role = ctx.guild.get_role(role_id) if role_id else None
-    tip = (
-        f"You need the **{bot_role.name}** role to use bot commands.\n"
-        "Please ask the **server owner** to grant you this role."
-        if bot_role else
-        "You don't have permission to use bot commands.\n"
-        "Please ask the **server owner** to assign a bot-role using `/set-botrole`."
-    )
-    embed = discord.Embed(title="🔒 Bot-Role Required", description=tip, color=0xED4245)
-    if hasattr(ctx, "respond"):
-        await ctx.respond(embed=embed, ephemeral=True)
-    else:
-        await ctx.reply(embed=embed, delete_after=15)
+    return await send_no_permission(ctx)
 
 
-async def log_activity(guild: discord.Guild, embed: discord.Embed):
+
+async def log_activity(guild: discord.Guild, embed: discord.Embed, file: discord.File = None):
     cfg = await get_config(guild.id)
     ch_id = cfg.get("activity_log_ch") or cfg.get("mod_log_ch") or cfg.get("log_ch")
     if not ch_id:
@@ -111,7 +51,10 @@ async def log_activity(guild: discord.Guild, embed: discord.Embed):
     ch = guild.get_channel(ch_id)
     if ch:
         try:
-            await ch.send(embed=embed)
+            if file:
+                await ch.send(embed=embed, file=file)
+            else:
+                await ch.send(embed=embed)
         except Exception:
             pass
 
@@ -217,12 +160,12 @@ class TicketIntakeModal(discord.ui.Modal):
             topic=f"Support ticket for {member} ({member.id}) — {subject}",
         )
 
-        async with aiosqlite.connect(DB_PATH) as db:
-            await db.execute(
-                "INSERT INTO tickets (guild_id, channel_id, user_id, status) VALUES (?,?,?,'open')",
-                (guild.id, ch.id, member.id),
-            )
-            await db.commit()
+        db = await get_db()
+        await db.execute(
+            "INSERT INTO tickets (guild_id, channel_id, user_id, status) VALUES (?,?,?,'open')",
+            (guild.id, ch.id, member.id),
+        )
+        await db.commit()
 
         # ── Ticket welcome embed with full intake details ──────────────────────
         priority_colors = {
@@ -293,13 +236,12 @@ class TicketOpenButton(discord.ui.View):
         member = interaction.user
 
         # Check existing open ticket
-        async with aiosqlite.connect(DB_PATH) as db:
-            db.row_factory = aiosqlite.Row
-            async with db.execute(
-                "SELECT * FROM tickets WHERE guild_id=? AND user_id=? AND status='open'",
-                (guild.id, member.id),
-            ) as cur:
-                existing = await cur.fetchone()
+        db = await get_db()
+        async with db.execute(
+            "SELECT * FROM tickets WHERE guild_id=? AND user_id=? AND status='open'",
+            (guild.id, member.id),
+        ) as cur:
+            existing = await cur.fetchone()
 
         if existing:
             ch = guild.get_channel(existing["channel_id"])
@@ -314,6 +256,11 @@ class TicketOpenButton(discord.ui.View):
 
         # Show intake modal — no defer needed before send_modal
         await interaction.response.send_modal(TicketIntakeModal(guild, member))
+
+
+# Alias for dashboard compatibility
+TicketLaunchView = TicketOpenButton
+
 
 
 # ── Ticket Close Button ───────────────────────────────────────────────────────
@@ -343,15 +290,14 @@ class TicketCloseButton(discord.ui.View):
 
 async def _close_ticket(channel: discord.TextChannel, guild: discord.Guild, closer: discord.Member):
     ticket_user_id = None
-    async with aiosqlite.connect(DB_PATH) as db:
-        db.row_factory = aiosqlite.Row
-        async with db.execute("SELECT * FROM tickets WHERE channel_id=?", (channel.id,)) as cur:
-            row = await cur.fetchone()
-            if row:
-                ticket_user_id = row["user_id"]
+    db = await get_db()
+    async with db.execute("SELECT * FROM tickets WHERE channel_id=?", (channel.id,)) as cur:
+        row = await cur.fetchone()
+        if row:
+            ticket_user_id = row["user_id"]
 
-        await db.execute("UPDATE tickets SET status='closed' WHERE channel_id=?", (channel.id,))
-        await db.commit()
+    await db.execute("UPDATE tickets SET status='closed' WHERE channel_id=?", (channel.id,))
+    await db.commit()
 
     embed = discord.Embed(
         title="🔒 Ticket Closed",
@@ -361,6 +307,27 @@ async def _close_ticket(channel: discord.TextChannel, guild: discord.Guild, clos
     )
     embed.set_footer(text="Nexus Support System")
     await channel.send(embed=embed)
+
+    # ── Generate full transcript ──────────────────────────────────────────────
+    transcript_lines = [
+        f"=== NEXUS TICKET TRANSCRIPT ===",
+        f"Channel: #{channel.name} ({channel.id})",
+        f"Guild: {guild.name} ({guild.id})",
+        f"Closed By: {closer} ({closer.id})",
+        f"Closed At: {discord.utils.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}",
+        "=" * 40,
+        "",
+    ]
+    try:
+        async for m in channel.history(limit=500, oldest_first=True):
+            ts = m.created_at.strftime("%Y-%m-%d %H:%M:%S")
+            att = f" [Attachment: {m.attachments[0].url}]" if m.attachments else ""
+            transcript_lines.append(f"[{ts}] {m.author} ({m.author.id}): {m.content}{att}")
+    except Exception:
+        pass
+
+    transcript_bytes = "\n".join(transcript_lines).encode("utf-8")
+    log_file = discord.File(io.BytesIO(transcript_bytes), filename=f"transcript-{channel.name}.txt")
 
     # Activity log
     log_embed = discord.Embed(
@@ -372,14 +339,30 @@ async def _close_ticket(channel: discord.TextChannel, guild: discord.Guild, clos
     if ticket_user_id:
         log_embed.add_field(name="👤 Ticket Owner", value=f"<@{ticket_user_id}> (`{ticket_user_id}`)", inline=True)
     log_embed.add_field(name="📁 Channel",       value=f"`#{channel.name}`", inline=True)
-    log_embed.set_footer(text="Nexus Ticket Audit")
-    await log_activity(guild, log_embed)
+    log_embed.set_footer(text="Nexus Ticket Audit • Transcript Attached")
+    await log_activity(guild, log_embed, file=log_file)
+
+    # DM transcript to ticket owner if accessible
+    if ticket_user_id:
+        try:
+            owner = guild.get_member(ticket_user_id) or await guild.fetch_member(ticket_user_id)
+            if owner:
+                dm_file = discord.File(io.BytesIO(transcript_bytes), filename=f"transcript-{channel.name}.txt")
+                dm_embed = discord.Embed(
+                    title="🎫 Support Ticket Closed",
+                    description=f"Your ticket **#{channel.name}** in **{guild.name}** was closed by {closer.mention}.\nAttached is your full ticket transcript for your records.",
+                    color=0x5865F2,
+                )
+                await owner.send(embed=dm_embed, file=dm_file)
+        except Exception:
+            pass
 
     await asyncio.sleep(5)
     try:
         await channel.delete(reason=f"Ticket closed by {closer}")
     except Exception:
         pass
+
 
 
 class Tickets(commands.Cog):
@@ -429,11 +412,18 @@ class Tickets(commands.Cog):
         )
 
     # ── /ticket set-role ──────────────────────────────────────────────────────
-    @ticket_group.command(name="set-role", description="Set the support staff role for tickets")
+    @ticket_group.command(name="set-role", description="Set the support staff role for tickets (Server Owner only)")
     @option("role", discord.Role, description="Staff role to assign for ticket support")
     async def ticket_set_role(self, ctx: discord.ApplicationContext, role: discord.Role):
-        if not await is_bot_admin(ctx):
-            return await no_perm(ctx)
+        if ctx.author.id != ctx.guild.owner_id and not is_bot_owner(ctx.author.id):
+            return await ctx.respond(
+                embed=discord.Embed(
+                    title="🔒 Server Owner Only",
+                    description="Only the **server owner** can assign the ticket support staff role.",
+                    color=0xED4245,
+                ),
+                ephemeral=True,
+            )
         await set_config(ctx.guild.id, ticket_role_id=role.id)
         embed = discord.Embed(
             title="✅ Ticket Support Role Assigned",
@@ -447,18 +437,46 @@ class Tickets(commands.Cog):
         embed.set_footer(text=f"Assigned by {ctx.author.name}")
         await ctx.respond(embed=embed)
 
+    # ── /ticket remove-role ───────────────────────────────────────────────────
+    @ticket_group.command(name="remove-role", description="Remove the ticket support staff role (Server Owner only)")
+    async def ticket_remove_role(self, ctx: discord.ApplicationContext):
+        if ctx.author.id != ctx.guild.owner_id and not is_bot_owner(ctx.author.id):
+            return await ctx.respond(
+                embed=discord.Embed(
+                    title="🔒 Server Owner Only",
+                    description="Only the **server owner** can remove the ticket support staff role.",
+                    color=0xED4245,
+                ),
+                ephemeral=True,
+            )
+        await set_config(ctx.guild.id, ticket_role_id=None)
+        await ctx.respond(
+            embed=discord.Embed(
+                title="✅ Ticket Support Role Removed",
+                description="The ticket support role restriction has been cleared. Only the Server Owner and Bot-Role holders will have default access.",
+                color=0x57F287,
+            ),
+            ephemeral=True,
+        )
+
     # ── /ticket close ─────────────────────────────────────────────────────────
     @ticket_group.command(name="close", description="Close the current ticket channel")
     async def ticket_close(self, ctx: discord.ApplicationContext):
         if not await can_close_ticket(ctx.author, ctx.guild):
-            return await no_perm(ctx)
+            return await ctx.respond(
+                embed=discord.Embed(
+                    title="🔒 Access Denied",
+                    description="❌ Only staff members (holding the Bot-Role or Ticket-Role) and the Server Owner can close tickets.",
+                    color=0xED4245,
+                ),
+                ephemeral=True,
+            )
 
-        async with aiosqlite.connect(DB_PATH) as db:
-            db.row_factory = aiosqlite.Row
-            async with db.execute(
-                "SELECT * FROM tickets WHERE channel_id=? AND status='open'", (ctx.channel.id,)
-            ) as cur:
-                ticket = await cur.fetchone()
+        db = await get_db()
+        async with db.execute(
+            "SELECT * FROM tickets WHERE channel_id=? AND status='open'", (ctx.channel.id,)
+        ) as cur:
+            ticket = await cur.fetchone()
 
         if not ticket:
             return await ctx.respond(
@@ -501,6 +519,41 @@ class Tickets(commands.Cog):
                 color=0x57F287,
             )
         )
+
+    # ── Prefix: n!ticket close / add / remove ─────────────────────────────────
+    @commands.group(name="ticket", invoke_without_command=True)
+    async def prefix_ticket(self, ctx: commands.Context):
+        if not await can_close_ticket(ctx.author, ctx.guild):
+            return await no_perm(ctx)
+        await ctx.reply("ℹ️ Usage: `n!ticket close`, `n!ticket add <@member>`, `n!ticket remove <@member>`")
+
+    @prefix_ticket.command(name="close")
+    async def prefix_ticket_close(self, ctx: commands.Context):
+        if not await can_close_ticket(ctx.author, ctx.guild):
+            return await ctx.reply("❌ Only staff members and the Server Owner have permission to close tickets.")
+        db = await get_db()
+        async with db.execute(
+            "SELECT * FROM tickets WHERE channel_id=? AND status='open'", (ctx.channel.id,)
+        ) as cur:
+            ticket = await cur.fetchone()
+        if not ticket:
+            return await ctx.reply("❌ This channel is not an active support ticket.")
+        await ctx.reply("🔒 Closing ticket…")
+        await _close_ticket(ctx.channel, ctx.guild, ctx.author)
+
+    @prefix_ticket.command(name="add")
+    async def prefix_ticket_add(self, ctx: commands.Context, member: discord.Member):
+        if not await can_close_ticket(ctx.author, ctx.guild):
+            return await no_perm(ctx)
+        await ctx.channel.set_permissions(member, read_messages=True, send_messages=True, attach_files=True)
+        await ctx.reply(f"✅ Added {member.mention} to the ticket.")
+
+    @prefix_ticket.command(name="remove")
+    async def prefix_ticket_remove(self, ctx: commands.Context, member: discord.Member):
+        if not await can_close_ticket(ctx.author, ctx.guild):
+            return await no_perm(ctx)
+        await ctx.channel.set_permissions(member, overwrite=None)
+        await ctx.reply(f"✅ Removed {member.mention} from the ticket.")
 
 
 def setup(bot):

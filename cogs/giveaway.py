@@ -7,6 +7,7 @@ Commands:
   /giveaway list   — list active giveaways
 """
 
+import re
 import discord
 from discord.ext import commands, tasks
 from discord import option
@@ -14,11 +15,27 @@ import aiosqlite
 import asyncio
 import random
 import time
-import re
-from pathlib import Path
+from core.config import is_bot_owner
+from core.permissions import has_tier_permission, send_no_permission
+from db.database import get_config, get_db
+from utils.durations import parse_duration, format_duration as fmt_time
 
-DB_PATH = Path("nexus.db")
-GLOBAL_OWNER_ID = 1201050377911554061
+
+async def log_activity(guild: discord.Guild, embed: discord.Embed):
+    """Dispatches embed to configured activity log channel or fallback log channels."""
+    cfg = await get_config(guild.id)
+    ch_id = cfg.get("activity_log_ch") or cfg.get("mod_log_ch") or cfg.get("log_ch")
+    if not ch_id:
+        return
+    ch = guild.get_channel(ch_id)
+    if ch:
+        try:
+            await ch.send(embed=embed)
+        except Exception:
+            pass
+
+
+
 
 
 def parse_roles_from_string(guild: discord.Guild, text: str) -> list[discord.Role]:
@@ -108,104 +125,13 @@ def parse_required_role_ids(row: dict) -> list[int]:
     return []
 
 
-async def get_config(guild_id):
-    async with aiosqlite.connect(DB_PATH) as db:
-        db.row_factory = aiosqlite.Row
-        async with db.execute("SELECT * FROM guild_config WHERE guild_id=?", (guild_id,)) as cur:
-            row = await cur.fetchone()
-        if row is None:
-            await db.execute("INSERT INTO guild_config (guild_id) VALUES (?)", (guild_id,))
-            await db.commit()
-            async with db.execute("SELECT * FROM guild_config WHERE guild_id=?", (guild_id,)) as cur:
-                row = await cur.fetchone()
-        return dict(row)
-
 
 async def is_bot_admin(ctx) -> bool:
-    """Server owner, global owner, or member with the bot-role.
-    Administrators without the bot-role are NOT granted access."""
-    if ctx.author.id == GLOBAL_OWNER_ID:
-        return True
-    if ctx.guild is None:
-        return False
-    if ctx.author.id == ctx.guild.owner_id:
-        return True
-    cfg = await get_config(ctx.guild.id)
-    role_id = cfg.get("bot_role_id")
-    if role_id and any(r.id == role_id for r in ctx.author.roles):
-        return True
-    return False
-
+    return await has_tier_permission(ctx, tier="staff")
 
 async def no_perm(ctx):
-    """Ephemeral 'ask server owner for bot role' response."""
-    if ctx.guild is None:
-        embed = discord.Embed(
-            title="🔒 Access Denied",
-            description="Commands can only be used inside a server.",
-            color=0xED4245,
-        )
-        if hasattr(ctx, "respond"):
-            return await ctx.respond(embed=embed, ephemeral=True)
-        return await ctx.reply(embed=embed)
+    return await send_no_permission(ctx)
 
-    cfg = await get_config(ctx.guild.id)
-    role_id  = cfg.get("bot_role_id")
-    bot_role = ctx.guild.get_role(role_id) if role_id else None
-    tip = (
-        f"You need the **{bot_role.name}** role to use bot commands.\n"
-        "Please ask the **server owner** to grant you this role."
-        if bot_role else
-        "You don't have permission to use bot commands.\n"
-        "Please ask the **server owner** to assign a bot-role using `/set-botrole`."
-    )
-    embed = discord.Embed(title="🔒 Bot-Role Required", description=tip, color=0xED4245)
-    if hasattr(ctx, "respond"):
-        await ctx.respond(embed=embed, ephemeral=True)
-    else:
-        await ctx.reply(embed=embed, delete_after=15)
-
-
-async def log_activity(guild: discord.Guild, embed: discord.Embed):
-    cfg = await get_config(guild.id)
-    ch_id = cfg.get("activity_log_ch") or cfg.get("mod_log_ch") or cfg.get("log_ch")
-    if not ch_id:
-        return
-    ch = guild.get_channel(ch_id)
-    if ch:
-        try:
-            await ch.send(embed=embed)
-        except Exception:
-            pass
-
-
-
-def parse_duration(s: str) -> int:
-    """Convert e.g. '1d', '2h30m', '45s' to seconds."""
-    s = s.strip().lower()
-    total = 0
-    buf = ""
-    for c in s:
-        if c.isdigit():
-            buf += c
-        elif c in "dhms" and buf:
-            n = int(buf)
-            total += n * {"d": 86400, "h": 3600, "m": 60, "s": 1}[c]
-            buf = ""
-    return total
-
-
-def fmt_time(secs: float) -> str:
-    secs = int(max(0, secs))
-    d, r = divmod(secs, 86400)
-    h, r = divmod(r, 3600)
-    m, s = divmod(r, 60)
-    parts = []
-    if d: parts.append(f"{d}d")
-    if h: parts.append(f"{h}h")
-    if m: parts.append(f"{m}m")
-    if s or not parts: parts.append(f"{s}s")
-    return " ".join(parts)
 
 
 GIVEAWAY_EMOJI = "🎉"
@@ -380,14 +306,14 @@ class GiveawayModal(discord.ui.Modal):
                 ephemeral=True,
             )
 
-        async with aiosqlite.connect(DB_PATH) as db:
-            await db.execute(
-                """INSERT INTO giveaways
-                   (guild_id, channel_id, message_id, host_id, prize, winners, ends_at, required_role_id, required_role_ids)
-                   VALUES (?,?,?,?,?,?,?,?,?)""",
-                (interaction.guild.id, self.target_channel.id, msg.id, interaction.user.id, prize, winners, ends_at, primary_role_id, req_role_ids_str),
-            )
-            await db.commit()
+        db = await get_db()
+        await db.execute(
+            """INSERT INTO giveaways
+               (guild_id, channel_id, message_id, host_id, prize, winners, ends_at, required_role_id, required_role_ids)
+               VALUES (?,?,?,?,?,?,?,?,?)""",
+            (interaction.guild.id, self.target_channel.id, msg.id, interaction.user.id, prize, winners, ends_at, primary_role_id, req_role_ids_str),
+        )
+        await db.commit()
 
         await interaction.followup.send(
             embed=discord.Embed(
@@ -421,46 +347,7 @@ class Giveaway(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        try:
-            loop = asyncio.get_running_loop()
-            loop.create_task(self._ensure_db())
-        except RuntimeError:
-            pass
         self.giveaway_loop.start()
-
-    async def _ensure_db(self):
-        try:
-            async with aiosqlite.connect(DB_PATH) as db:
-                await db.execute("""
-                    CREATE TABLE IF NOT EXISTS giveaways (
-                        id               INTEGER PRIMARY KEY AUTOINCREMENT,
-                        guild_id         INTEGER NOT NULL,
-                        channel_id       INTEGER NOT NULL,
-                        message_id       INTEGER NOT NULL,
-                        host_id          INTEGER NOT NULL,
-                        prize            TEXT    NOT NULL,
-                        winners          INTEGER NOT NULL DEFAULT 1,
-                        ends_at          REAL    NOT NULL,
-                        ended            INTEGER NOT NULL DEFAULT 0,
-                        required_role_id INTEGER DEFAULT NULL,
-                        required_role_ids TEXT DEFAULT NULL
-                    );
-                """)
-                await db.execute("""
-                    CREATE TABLE IF NOT EXISTS giveaway_ineligible_dms (
-                        giveaway_id INTEGER NOT NULL,
-                        user_id     INTEGER NOT NULL,
-                        notified_at REAL NOT NULL,
-                        PRIMARY KEY (giveaway_id, user_id)
-                    );
-                """)
-                async with db.execute("PRAGMA table_info(giveaways)") as cur:
-                    gw_cols = [r[1] for r in await cur.fetchall()]
-                if "required_role_ids" not in gw_cols:
-                    await db.execute("ALTER TABLE giveaways ADD COLUMN required_role_ids TEXT DEFAULT NULL")
-                await db.commit()
-        except Exception:
-            pass
 
     def cog_unload(self):
         self.giveaway_loop.cancel()
@@ -469,12 +356,11 @@ class Giveaway(commands.Cog):
     @tasks.loop(seconds=30)
     async def giveaway_loop(self):
         now = time.time()
-        async with aiosqlite.connect(DB_PATH) as db:
-            db.row_factory = aiosqlite.Row
-            async with db.execute(
-                "SELECT * FROM giveaways WHERE ended=0 AND ends_at <= ?", (now,)
-            ) as cur:
-                rows = await cur.fetchall()
+        db = await get_db()
+        async with db.execute(
+            "SELECT * FROM giveaways WHERE ended=0 AND ends_at <= ?", (now,)
+        ) as cur:
+            rows = await cur.fetchall()
         for row in rows:
             await self._end_giveaway(dict(row))
 
@@ -540,9 +426,9 @@ class Giveaway(commands.Cog):
         end_log.set_footer(text="Nexus Activity Audit")
         await log_activity(channel.guild, end_log)
 
-        async with aiosqlite.connect(DB_PATH) as db:
-            await db.execute("UPDATE giveaways SET ended=1 WHERE id=?", (row["id"],))
-            await db.commit()
+        db = await get_db()
+        await db.execute("UPDATE giveaways SET ended=1 WHERE id=?", (row["id"],))
+        await db.commit()
 
     # ── Listener: Check Role on Reaction ──────────────────────────────────────
     @commands.Cog.listener()
@@ -550,13 +436,12 @@ class Giveaway(commands.Cog):
         if payload.user_id == self.bot.user.id or str(payload.emoji) != GIVEAWAY_EMOJI:
             return
 
-        async with aiosqlite.connect(DB_PATH) as db:
-            db.row_factory = aiosqlite.Row
-            async with db.execute(
-                "SELECT * FROM giveaways WHERE message_id=? AND ended=0",
-                (payload.message_id,),
-            ) as cur:
-                row = await cur.fetchone()
+        db = await get_db()
+        async with db.execute(
+            "SELECT * FROM giveaways WHERE message_id=? AND ended=0",
+            (payload.message_id,),
+        ) as cur:
+            row = await cur.fetchone()
 
         if not row:
             return
@@ -596,20 +481,19 @@ class Giveaway(commands.Cog):
 
         # 2. Check if this member has already received a DM for THIS specific giveaway
         gw_id = row_dict["id"]
-        async with aiosqlite.connect(DB_PATH) as db:
-            db.row_factory = aiosqlite.Row
-            async with db.execute(
-                "SELECT 1 FROM giveaway_ineligible_dms WHERE giveaway_id=? AND user_id=?",
-                (gw_id, member.id),
-            ) as cur:
-                already_dm = await cur.fetchone() is not None
+        db = await get_db()
+        async with db.execute(
+            "SELECT 1 FROM giveaway_ineligible_dms WHERE giveaway_id=? AND user_id=?",
+            (gw_id, member.id),
+        ) as cur:
+            already_dm = await cur.fetchone() is not None
 
-            if not already_dm:
-                await db.execute(
-                    "INSERT OR IGNORE INTO giveaway_ineligible_dms (giveaway_id, user_id, notified_at) VALUES (?, ?, ?)",
-                    (gw_id, member.id, time.time()),
-                )
-                await db.commit()
+        if not already_dm:
+            await db.execute(
+                "INSERT OR IGNORE INTO giveaway_ineligible_dms (giveaway_id, user_id, notified_at) VALUES (?, ?, ?)",
+                (gw_id, member.id, time.time()),
+            )
+            await db.commit()
 
         # If already DMed previously for this giveaway: auto-remove was completed, do not send another DM
         if already_dm:
@@ -671,13 +555,12 @@ class Giveaway(commands.Cog):
             return await ctx.respond(
                 embed=discord.Embed(description="❌ Invalid message ID.", color=0xED4245), ephemeral=True
             )
-        async with aiosqlite.connect(DB_PATH) as db:
-            db.row_factory = aiosqlite.Row
-            async with db.execute(
-                "SELECT * FROM giveaways WHERE message_id=? AND guild_id=? AND ended=0",
-                (mid, ctx.guild.id),
-            ) as cur:
-                row = await cur.fetchone()
+        db = await get_db()
+        async with db.execute(
+            "SELECT * FROM giveaways WHERE message_id=? AND guild_id=? AND ended=0",
+            (mid, ctx.guild.id),
+        ) as cur:
+            row = await cur.fetchone()
 
         if not row:
             return await ctx.respond(
@@ -702,12 +585,11 @@ class Giveaway(commands.Cog):
             return await ctx.respond(
                 embed=discord.Embed(description="❌ Invalid message ID.", color=0xED4245), ephemeral=True
             )
-        async with aiosqlite.connect(DB_PATH) as db:
-            db.row_factory = aiosqlite.Row
-            async with db.execute(
-                "SELECT * FROM giveaways WHERE message_id=? AND guild_id=?", (mid, ctx.guild.id)
-            ) as cur:
-                row = await cur.fetchone()
+        db = await get_db()
+        async with db.execute(
+            "SELECT * FROM giveaways WHERE message_id=? AND guild_id=?", (mid, ctx.guild.id)
+        ) as cur:
+            row = await cur.fetchone()
 
         if not row:
             return await ctx.respond(
@@ -766,13 +648,12 @@ class Giveaway(commands.Cog):
     async def giveaway_list(self, ctx: discord.ApplicationContext):
         if not await is_bot_admin(ctx):
             return await no_perm(ctx)
-        async with aiosqlite.connect(DB_PATH) as db:
-            db.row_factory = aiosqlite.Row
-            async with db.execute(
-                "SELECT * FROM giveaways WHERE guild_id=? AND ended=0 ORDER BY ends_at ASC",
-                (ctx.guild.id,),
-            ) as cur:
-                rows = await cur.fetchall()
+        db = await get_db()
+        async with db.execute(
+            "SELECT * FROM giveaways WHERE guild_id=? AND ended=0 ORDER BY ends_at ASC",
+            (ctx.guild.id,),
+        ) as cur:
+            rows = await cur.fetchall()
 
         if not rows:
             return await ctx.respond(

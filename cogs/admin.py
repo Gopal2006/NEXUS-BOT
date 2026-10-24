@@ -7,93 +7,21 @@ Commands: /set-botrole, /remove-botrole, /set-welcome, /set-leave,
 import discord
 from discord.ext import commands
 from discord import option
-import aiosqlite
-from pathlib import Path
 import time
+from pathlib import Path
 
-DB_PATH = Path("nexus.db")
-GLOBAL_OWNER_ID = 1201050377911554061
-SUPPORT_SERVER  = "https://discord.gg/PLACEHOLDER"  # Update when ready
+from core.config import is_bot_owner, SUPPORT_SERVER
+from core.permissions import has_tier_permission, send_no_permission
+from db.database import get_config, set_config
 
 _BOT_START_TIME = time.time()  # approximate uptime reference
 
-async def get_config(guild_id: int) -> dict:
-    async with aiosqlite.connect(DB_PATH) as db:
-        db.row_factory = aiosqlite.Row
-        async with db.execute(
-            "SELECT * FROM guild_config WHERE guild_id = ?", (guild_id,)
-        ) as cur:
-            row = await cur.fetchone()
-        if row is None:
-            await db.execute("INSERT INTO guild_config (guild_id) VALUES (?)", (guild_id,))
-            await db.commit()
-            async with db.execute("SELECT * FROM guild_config WHERE guild_id = ?", (guild_id,)) as cur:
-                row = await cur.fetchone()
-        return dict(row)
-
-async def set_config(guild_id: int, **kwargs):
-    sets = ", ".join(f"{k} = ?" for k in kwargs)
-    vals = list(kwargs.values()) + [guild_id]
-    async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute(f"UPDATE guild_config SET {sets} WHERE guild_id = ?", vals)
-        await db.commit()
-
-
-# ── Shared permission helper ──────────────────────────────────────────────────
 async def _is_bot_admin(ctx_or_author, guild) -> bool:
-    """True only for global owner, server owner, or member with the bot-role.
-    Administrators without the bot-role are NOT granted access."""
-    if guild is None:
-        return False
-    author = ctx_or_author if isinstance(ctx_or_author, discord.Member) else getattr(ctx_or_author, "author", ctx_or_author)
-    if author.id == GLOBAL_OWNER_ID:
-        return True
-    if author.id == guild.owner_id:
-        return True
-    cfg = await get_config(guild.id)
-    role_id = cfg.get("bot_role_id")
-    if role_id:
-        member = guild.get_member(author.id) or author
-        if hasattr(member, "roles"):
-            return any(r.id == role_id for r in member.roles)
-    return False
+    return await has_tier_permission(ctx_or_author, tier="staff")
 
-
-# ── Shared: ephemeral "no permission" response ────────────────────────────────
 async def _no_perm(ctx: discord.ApplicationContext):
-    if ctx.guild is None:
-        return await ctx.respond(
-            embed=discord.Embed(
-                title="🔒 Access Denied",
-                description="Commands can only be used inside a server.",
-                color=0xED4245,
-            ),
-            ephemeral=True,
-        )
+    return await send_no_permission(ctx)
 
-    cfg = await get_config(ctx.guild.id)
-    role_id = cfg.get("bot_role_id")
-    bot_role = ctx.guild.get_role(role_id) if role_id else None
-
-    if bot_role:
-        tip = (
-            f"You need the {bot_role.mention} role to use bot commands.\n"
-            "Please ask the **server owner** to grant you this role."
-        )
-    else:
-        tip = (
-            "You don't have access to bot commands.\n"
-            "Please ask the **server owner** to assign you the bot-role using `/set-botrole`."
-        )
-
-    await ctx.respond(
-        embed=discord.Embed(
-            title="🔒 Access Denied",
-            description=tip,
-            color=0xED4245,
-        ),
-        ephemeral=True,
-    )
 
 
 class Admin(commands.Cog):
@@ -107,7 +35,7 @@ class Admin(commands.Cog):
     @option("role", discord.Role, description="Role that will have full bot access")
     async def set_botrole(self, ctx: discord.ApplicationContext, role: discord.Role):
         # Only server owner (or global bot owner) can configure the bot-role
-        if ctx.author.id not in (ctx.guild.owner_id, GLOBAL_OWNER_ID):
+        if ctx.author.id != ctx.guild.owner_id and not is_bot_owner(ctx.author.id):
             return await ctx.respond(
                 embed=discord.Embed(
                     title="🔒 Server Owner Only",
@@ -116,6 +44,25 @@ class Admin(commands.Cog):
                 ),
                 ephemeral=True,
             )
+
+        # Check if a bot role is already configured
+        cfg = await get_config(ctx.guild.id)
+        existing_bot_role_id = cfg.get("bot_role_id")
+        if existing_bot_role_id:
+            existing_role = ctx.guild.get_role(existing_bot_role_id)
+            existing_mention = existing_role.mention if existing_role else f"`ID: {existing_bot_role_id}`"
+            return await ctx.respond(
+                embed=discord.Embed(
+                    title="⚠️ Bot-Role Already Configured",
+                    description=(
+                        f"A Bot-Role is already set to {existing_mention}.\n\n"
+                        "To change it, please run `/remove-botrole` first to remove the current role before assigning a new one."
+                    ),
+                    color=0xFEE75C,
+                ),
+                ephemeral=True,
+            )
+
         await set_config(ctx.guild.id, bot_role_id=role.id)
         embed = discord.Embed(
             title="✅ Bot-Role Configured",
@@ -132,7 +79,7 @@ class Admin(commands.Cog):
     # ── /remove-botrole ───────────────────────────────────────────────────────
     @discord.slash_command(name="remove-botrole", description="Remove the bot role restriction")
     async def remove_botrole(self, ctx: discord.ApplicationContext):
-        if ctx.author.id not in (ctx.guild.owner_id, GLOBAL_OWNER_ID):
+        if ctx.author.id != ctx.guild.owner_id and not is_bot_owner(ctx.author.id):
             return await ctx.respond(
                 embed=discord.Embed(
                     title="🔒 Server Owner Only",
@@ -149,6 +96,53 @@ class Admin(commands.Cog):
                     "The bot-role restriction has been lifted.\n"
                     "Only you (the server owner) can now use bot commands until a new bot-role is set."
                 ),
+                color=0x57F287,
+            )
+        )
+
+    # ── /set-ticketrole ───────────────────────────────────────────────────────
+    @discord.slash_command(name="set-ticketrole", description="Set which role manages support tickets (Server Owner only)")
+    @option("role", discord.Role, description="Staff role to assign for ticket support")
+    async def set_ticketrole(self, ctx: discord.ApplicationContext, role: discord.Role):
+        if ctx.author.id != ctx.guild.owner_id and not is_bot_owner(ctx.author.id):
+            return await ctx.respond(
+                embed=discord.Embed(
+                    title="🔒 Server Owner Only",
+                    description="Only the **server owner** can assign the ticket support staff role.",
+                    color=0xED4245,
+                ),
+                ephemeral=True,
+            )
+        await set_config(ctx.guild.id, ticket_role_id=role.id)
+        embed = discord.Embed(
+            title="✅ Ticket Support Role Assigned",
+            description=(
+                f"Members with {role.mention} will now be automatically added to all new "
+                "support tickets and have permission to manage and close them."
+            ),
+            color=0x57F287,
+            timestamp=discord.utils.utcnow(),
+        )
+        embed.set_footer(text=f"Assigned by {ctx.author}")
+        await ctx.respond(embed=embed)
+
+    # ── /remove-ticketrole ────────────────────────────────────────────────────
+    @discord.slash_command(name="remove-ticketrole", description="Remove the ticket support role restriction (Server Owner only)")
+    async def remove_ticketrole(self, ctx: discord.ApplicationContext):
+        if ctx.author.id != ctx.guild.owner_id and not is_bot_owner(ctx.author.id):
+            return await ctx.respond(
+                embed=discord.Embed(
+                    title="🔒 Server Owner Only",
+                    description="Only the **server owner** can remove the ticket support staff role.",
+                    color=0xED4245,
+                ),
+                ephemeral=True,
+            )
+        await set_config(ctx.guild.id, ticket_role_id=None)
+        await ctx.respond(
+            embed=discord.Embed(
+                title="✅ Ticket Support Role Removed",
+                description="The ticket support role restriction has been cleared.",
                 color=0x57F287,
             )
         )
@@ -235,137 +229,53 @@ class Admin(commands.Cog):
 
         def ch(id_):
             c = g.get_channel(id_) if id_ else None
-            return c.mention if c else "*not set*"
+            return c.mention if c else "`Not Configured`"
 
         def role(id_):
             r = g.get_role(id_) if id_ else None
-            return r.mention if r else "*not set*"
+            return r.mention if r else "`Not Configured`"
 
         embed = discord.Embed(
-            title=f"⚙️ {g.name} — Configuration",
-            color=0x5865F2,
+            title="Nexus • Server Configuration",
+            description=f"Current settings and audit channels for **{g.name}**.",
+            color=0x2B2D31,
             timestamp=discord.utils.utcnow(),
         )
-        embed.add_field(name="🔧 Bot-Role",            value=role(cfg.get("bot_role_id")),                      inline=True)
-        embed.add_field(name="🎫 Ticket Role",          value=role(cfg.get("ticket_role_id")),                   inline=True)
-        embed.add_field(name="\u200b",                   value="\u200b",                                          inline=True)
-        embed.add_field(name="👋 Welcome Channel",      value=ch(cfg.get("welcome_ch")),                          inline=True)
-        embed.add_field(name="🚪 Leave Channel",         value=ch(cfg.get("leave_ch")),                            inline=True)
-        embed.add_field(name="🔨 Mod Log",              value=ch(cfg.get("mod_log_ch") or cfg.get("log_ch")),     inline=True)
-        embed.add_field(name="📋 Server Log",           value=ch(cfg.get("server_log_ch")),                      inline=True)
-        embed.add_field(name="📨 Activity Log",         value=ch(cfg.get("activity_log_ch")),                    inline=True)
-        embed.add_field(name="⌨️ Command Log",          value=ch(cfg.get("cmd_log_ch") or cfg.get("activity_log_ch")), inline=True)
-        embed.add_field(name="💬 Welcome Message",      value=f"`{cfg['welcome_msg']}`",                          inline=False)
-        embed.add_field(name="💬 Leave Message",        value=f"`{cfg['leave_msg']}`",                            inline=False)
-        embed.set_thumbnail(url=g.icon.url if g.icon else None)
-        embed.set_footer(text=f"Server ID: {g.id}")
-        await ctx.respond(embed=embed, ephemeral=True)
 
-    # ── /serverstats ──────────────────────────────────────────────────────────
-    @discord.slash_command(name="serverstats", description="View server statistics and bot status")
-    async def serverstats(self, ctx: discord.ApplicationContext):
-        if not await _is_bot_admin(ctx, ctx.guild):
-            return await _no_perm(ctx)
-        g   = ctx.guild
-        cfg = await get_config(g.id)
-        bot = self.bot
-
-        def ch(id_):
-            c = g.get_channel(id_) if id_ else None
-            return c.mention if c else "*not set*"
-
-        def role(id_):
-            r = g.get_role(id_) if id_ else None
-            return r.mention if r else "*not set*"
-
-        # Member counts
-        total_members = g.member_count
-        humans        = sum(1 for m in g.members if not m.bot)
-        bots          = total_members - humans
-        online        = sum(
-            1 for m in g.members
-            if m.status != discord.Status.offline and not m.bot
+        embed.add_field(
+            name="🛡️ Access & Roles",
+            value=(
+                f"**Bot Management:** {role(cfg.get('bot_role_id'))}\n"
+                f"**Support Staff:** {role(cfg.get('ticket_role_id'))}"
+            ),
+            inline=False,
         )
 
-        # Channel counts
-        text_ch    = len(g.text_channels)
-        voice_ch   = len(g.voice_channels)
-        categories = len(g.categories)
-        threads    = len(g.threads)
-
-        # Roles
-        role_count = len(g.roles) - 1  # exclude @everyone
-
-
-        embed = discord.Embed(
-            title=f"📊 {g.name} — Server Statistics",
-            color=0x5865F2,
-            timestamp=discord.utils.utcnow(),
+        embed.add_field(
+            name="📋 Logging & Audit Pipeline",
+            value=(
+                f"**Mod Logs:** {ch(cfg.get('mod_log_ch') or cfg.get('log_ch'))}\n"
+                f"**Server Logs:** {ch(cfg.get('server_log_ch'))}\n"
+                f"**Activity Logs:** {ch(cfg.get('activity_log_ch'))}\n"
+                f"**Command Logs:** {ch(cfg.get('cmd_log_ch'))}"
+            ),
+            inline=False,
         )
+
+        welcome_c = ch(cfg.get("welcome_ch"))
+        leave_c = ch(cfg.get("leave_ch"))
+        embed.add_field(
+            name="👋 Welcoming System",
+            value=(
+                f"**Welcome Channel:** {welcome_c}\n"
+                f"**Leave Channel:** {leave_c}"
+            ),
+            inline=False,
+        )
+
         if g.icon:
             embed.set_thumbnail(url=g.icon.url)
-
-        # ── Server overview ────────────────────────────────────────────────────
-        embed.add_field(
-            name="🌐 Server Info",
-            value=(
-                f"**Owner:** {g.owner.mention if g.owner else '*unknown*'}\n"
-                f"**Created:** <t:{int(g.created_at.timestamp())}:D>\n"
-                f"**Server ID:** `{g.id}`\n"
-                f"**Verification:** `{str(g.verification_level).title()}`\n"
-                f"**Boost Level:** `Tier {g.premium_tier}` ({g.premium_subscription_count} boosts)"
-            ),
-            inline=False,
-        )
-
-        # ── Members ────────────────────────────────────────────────────────────
-        embed.add_field(
-            name="👥 Members",
-            value=(
-                f"**Total:** `{total_members}`\n"
-                f"**Humans:** `{humans}`\n"
-                f"**Bots:** `{bots}`\n"
-                f"**Online:** `{online}`"
-            ),
-            inline=True,
-        )
-
-        # ── Channels ───────────────────────────────────────────────────────────
-        embed.add_field(
-            name="💬 Channels",
-            value=(
-                f"**Text:** `{text_ch}`\n"
-                f"**Voice:** `{voice_ch}`\n"
-                f"**Categories:** `{categories}`\n"
-                f"**Threads:** `{threads}`"
-            ),
-            inline=True,
-        )
-
-        # ── Roles ──────────────────────────────────────────────────────────────
-        embed.add_field(
-            name="🏷️ Roles",
-            value=f"**Total:** `{role_count}`",
-            inline=True,
-        )
-
-        # ── Bot config ─────────────────────────────────────────────────────────
-        embed.add_field(
-            name="🤖 Bot Configuration",
-            value=(
-                f"**Bot-Role:** {role(cfg.get('bot_role_id'))}\n"
-                f"**Ticket-Role:** {role(cfg.get('ticket_role_id'))}\n"
-                f"**Mod Log:** {ch(cfg.get('mod_log_ch') or cfg.get('log_ch'))}\n"
-                f"**Server Log:** {ch(cfg.get('server_log_ch'))}\n"
-                f"**Activity Log:** {ch(cfg.get('activity_log_ch'))}\n"
-                f"**Command Log:** {ch(cfg.get('cmd_log_ch') or cfg.get('activity_log_ch'))}\n"
-                f"**Welcome Ch:** {ch(cfg.get('welcome_ch'))}\n"
-                f"**Leave Ch:** {ch(cfg.get('leave_ch'))}"
-            ),
-            inline=False,
-        )
-
-        embed.set_footer(text=f"Nexus  •  Requested by {ctx.author.display_name}")
+        embed.set_footer(text=f"Server ID: {g.id} • Use /setupbot to re-initialize logs")
         await ctx.respond(embed=embed, ephemeral=True)
 
     # ── /setupbot ─────────────────────────────────────────────────────────────
@@ -438,6 +348,7 @@ class Admin(commands.Cog):
             mod_ch      = await get_or_make_channel("🔒・mod-logs",      "Moderation audit — Kicks, Bans, Timeouts, Warnings")
             server_ch   = await get_or_make_channel("🔒・server-logs",   "Server audit — Locks, Unlocks, Slowmode, Purges")
             activity_ch = await get_or_make_channel("🔒・activity-logs", "Staff DMs, Ticket events, Giveaways", extra_role=ticket_role)
+            cmd_ch      = await get_or_make_channel("🔒・cmd-logs",      "Dedicated execution log channel for prefix and slash commands")
 
         except discord.Forbidden:
             return await ctx.followup.send(
@@ -452,7 +363,7 @@ class Admin(commands.Cog):
             guild.id,
             log_ch=mod_ch.id, mod_log_ch=mod_ch.id,
             server_log_ch=server_ch.id, activity_log_ch=activity_ch.id,
-            cmd_log_ch=activity_ch.id,
+            cmd_log_ch=cmd_ch.id,
         )
 
         # Welcome messages in each log channel
@@ -474,13 +385,20 @@ class Admin(commands.Cog):
             color=0x57F287, timestamp=discord.utils.utcnow(),
         ).set_footer(text="Nexus  •  Activity Audit"))
 
+        await cmd_ch.send(embed=discord.Embed(
+            title="⌨️ Command Log Channel — Active",
+            description="Records: Prefix and slash command executions",
+            color=0x5865F2, timestamp=discord.utils.utcnow(),
+        ).set_footer(text="Nexus  •  Command Audit"))
+
         reply = discord.Embed(
             title="🚀 Nexus Setup Complete",
             description=(
-                f"Three private audit log channels have been created:\n\n"
+                f"Four private audit log channels have been configured:\n\n"
                 f"🔨 **Mod Logs:** {mod_ch.mention}\n"
                 f"📋 **Server Logs:** {server_ch.mention}\n"
-                f"📨 **Activity Logs:** {activity_ch.mention}\n\n"
+                f"📨 **Activity Logs:** {activity_ch.mention}\n"
+                f"⌨️ **Command Logs:** {cmd_ch.mention}\n\n"
                 f"🔧 **Bot-Role:** {bot_role.mention if bot_role else '*Not set — use `/set-botrole`*'}\n"
                 f"🎫 **Ticket-Role:** {ticket_role.mention if ticket_role else '*Not set — use `/ticket set-role`*'}\n\n"
                 "All channels are private (`@everyone` cannot view them)."
@@ -506,7 +424,7 @@ class Admin(commands.Cog):
         activity_text: str = "over the server",
     ):
         # Bot-owner exclusive
-        if ctx.author.id != GLOBAL_OWNER_ID and not await self.bot.is_owner(ctx.author):
+        if not is_bot_owner(ctx.author.id) and not await self.bot.is_owner(ctx.author):
             return await ctx.respond(
                 embed=discord.Embed(
                     title="🔒 Access Denied",

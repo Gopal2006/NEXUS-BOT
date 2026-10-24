@@ -1,61 +1,61 @@
-# 📖 Nexus Bot — Complete Commands & Usage Manual
+# 📖 Nexus Discord Bot — Streamlined Command Manual
 
-Welcome to the comprehensive command manual for **Nexus Discord Bot**. This guide explains every feature, command syntax, permission level, and practical example.
+Welcome to the streamlined command manual for **Nexus Discord Bot**. This manual documents the curated, high-performance feature set resulting from server testing and feedback.
 
 ---
 
 ## 📑 Table of Contents
-1. [Permission Architecture](#1-permission-architecture)
+1. [Permission Tier Architecture](#1-permission-tier-architecture)
 2. [First-Time Server Setup](#2-first-time-server-setup)
-3. [Admin & Configuration Commands](#3-admin--configuration-commands)
-4. [Moderation System (Slash, Prefix & Non-Prefix)](#4-moderation-system)
-5. [Announcements System](#5-announcements-system)
-6. [Direct Messaging (DM) System](#6-direct-messaging-dm-system)
-7. [Giveaways System](#7-giveaways-system)
-8. [Polls System](#8-polls-system)
-9. [Support Ticket System](#9-support-ticket-system)
-10. [Audit & Command Logging System](#10-audit--command-logging-system)
-11. [FAQ: What is `nexus.db`?](#11-faq-what-is-nexusdb)
+3. [Admin & Setup](#3-admin--setup)
+4. [Moderation & Security](#4-moderation--security)
+5. [Server Management & Roles](#5-server-management--roles)
+6. [Engagement & Social](#6-engagement--social)
+7. [Mini-Games](#7-mini-games)
+8. [Announcements & Direct Messaging](#8-announcements--direct-messaging)
+9. [Giveaways & Polls](#9-giveaways--polls)
+10. [Support Tickets](#10-support-tickets)
+11. [Utility & Diagnostics](#11-utility--diagnostics)
+12. [Global Bot Owner Commands](#12-global-bot-owner-commands)
 
 ---
 
-## 1. Permission Architecture
+## 1. Permission Tier Architecture
 
-Nexus uses a strict, role-isolated permission model to protect your server:
+Nexus operates on a strict 4-tier security hierarchy. Regular server Administrators **without the bot-role** are intentionally blocked from administrative and moderation operations to maintain server owner control and prevent unauthorized staff escalation.
 
-```
-┌──────────────────────▼───────────────────────┐
-│                 SERVER OWNER                 │ (Can configure bot-role)
-└──────────────────────┬───────────────────────┘
-                       │
-┌──────────────────────▼───────────────────────┐
-│            BOT-ROLE MANAGERS                 │ (Granted via /set-botrole)
-└──────────────────────┬───────────────────────┘
-```
-
-> 🔒 **Critical Security Rule:** Regular server **Administrators** WITHOUT the configured bot-role **CANNOT** use bot management commands. The server owner must explicitly assign a bot role using `/set-botrole`.
+| Tier | Access Requirements | Modules Covered |
+|---|---|---|
+| `public` | Everyone in the server | Rank, Leaderboard, AFK, Games (/tictactoe, /rps, /guess), Serverinfo, Userinfo, Ticket Creation, Poll Voting |
+| `staff` | Server Owner, Bot Owners, Non-Prefix allowlist, or **holders of the configured Bot-Role** | Help, Moderation suite, Announcements, Staff DMs, Giveaways, Poll Creation, Autorole, Reaction Roles, Leveling Config |
+| `owner` | **Server Owner Only** (and Bot Owners) | `/set-botrole`, `/remove-botrole`, `/lockdown`, `/unlockdown`, Ticket Close authority |
+| `bot_owner` | Listed in `OWNER_IDS` only | Diagnostic Telemetry (`/ping`, `/stats`, `/uptime`), Slash Command Syncing (`n!sync`), Non-Prefix User Management (`n!addnp`, `n!removenp`, `n!nplist`) |
 
 ---
 
 ## 2. First-Time Server Setup
 
-Follow these steps to set up Nexus in a new Discord server:
+Follow this rapid 4-step guide to configure Nexus in a new server:
 
-1. **Assign Staff Role:**
+1. **Designate the Management Bot-Role:**
    ```
    /set-botrole role:@Staff
    ```
-2. **Auto-Create Audit Log Channels:**
+   *(If a Bot-Role is already set, run `/remove-botrole` first before assigning a new one).*
+
+2. **Auto-Generate All 4 Audit Channels:**
    ```
    /setupbot
    ```
-   *Creates `📁 NEXUS LOGS` with `🔒・mod-logs`, `🔒・server-logs`, and `🔒・activity-logs`.*
-3. **Configure Welcome & Leave Channels (Optional):**
+   *Creates the private `📁 NEXUS LOGS` category with `🔒・mod-logs`, `🔒・server-logs`, `🔒・activity-logs`, and `🔒・cmd-logs` and automatically binds them in the database.*
+
+3. **Configure Welcome & Farewell Greetings:**
    ```
    /set-welcome channel:#welcome message:Welcome {mention} to **{guild}**! 🎉
-   /set-leave channel:#goodbye message:**{name}** has left the server. Goodbye! 👋
+   /set-leave channel:#farewell message:**{name}** has departed. 👋
    ```
-4. **Deploy Ticket System (Optional):**
+
+4. **Deploy the Support Ticket System:**
    ```
    /ticket set-role role:@SupportStaff
    /ticket setup channel:#open-a-ticket
@@ -63,165 +63,141 @@ Follow these steps to set up Nexus in a new Discord server:
 
 ---
 
-## 3. Admin & Configuration Commands
+## 3. Admin & Setup
 
-| Command | Type | Description | Required Permission |
+| Command | Tier | Invocation | Description |
 |---|---|---|---|
-| `/setupbot` | Slash | Automatically creates private audit log channels and links them | Server Owner / Bot-Role |
-| `/set-botrole <role>` | Slash | Designates the management role that can run Nexus commands | **Server Owner Only** |
-| `/remove-botrole` | Slash | Removes bot-role restriction (restricts bot back to Server Owner) | **Server Owner Only** |
-| `/set-welcome <channel> [message]` | Slash | Sets welcome channel and customizable join message | Server Owner / Bot-Role |
-| `/set-leave <channel> [message]` | Slash | Sets leave channel and customizable farewell message | Server Owner / Bot-Role |
-| `/set-log <channel>` | Slash | Sets the moderation action log channel manually | Server Owner / Bot-Role |
-| `/set-cmdlog <channel>` | Slash | Sets the dedicated prefix/non-prefix command execution log channel | Server Owner / Bot-Role |
-| `/config` | Slash | Displays full server settings, assigned roles, and channels | Server Owner / Bot-Role |
-| `/serverstats` | Slash | Real-time server statistics (members, bots, channels, roles, bot uptime) | Server Owner / Bot-Role |
-
-### Welcome/Leave Placeholders:
-- `{mention}` — Mentions the member (`@user`)
-- `{name}` — Member's username (`username`)
-- `{guild}` — The name of the server
+| `/setupbot` | `staff` | Slash | Automatically provisions `📁 NEXUS LOGS` with private `mod-logs`, `server-logs`, `activity-logs`, and `cmd-logs`. |
+| `/set-botrole <role>` | `owner` | Slash | Configures the management role. If a role already exists, prompts to run `/remove-botrole` first. |
+| `/remove-botrole` | `owner` | Slash | Removes the bot-role restriction, restoring exclusive control to the Server Owner. |
+| `/set-welcome <channel> [msg]` | `staff` | Slash | Sets welcome channel and template `{mention}`, `{name}`, `{guild}`. |
+| `/set-leave <channel> [msg]` | `staff` | Slash | Sets farewell channel and template. |
+| `/set-log <channel>` | `staff` | Slash | Manually sets or redirects moderation audit log channel. |
+| `/set-cmdlog <channel>` | `staff` | Slash | Manually sets command execution audit log channel. |
+| `/config` | `staff` | Slash | Sleek, minimal, professional embed displaying all configured roles, channels, and pipelines. |
 
 ---
 
-## 4. Moderation System
+## 4. Moderation & Security
 
-Moderation commands are available via **Slash Commands (`/`)**, **Prefix (`n!`)**, and **Non-Prefix** (for authorized non-prefix users).
+All disciplinary actions create persistent **Case IDs** and log to `mod-logs`. Role hierarchy is strictly enforced (Nexus cannot act on equal/higher roles; staff cannot act on owners or higher staff).
 
-> 🛡️ **Reason Requirement:** To ensure high accountability, a reason is **strictly required** for kick, ban, and warn actions.
-
-| Slash Command | Prefix Command | Non-Prefix Command | Parameters & Description |
+| Command | Tier | Syntax & Aliases | Requirements & Details |
 |---|---|---|---|
-| `/kick` | `n!kick` | `kick` | `<@member> <reason>` — Kicks member, sends DM notice with reason, and logs action |
-| `/ban` | `n!ban` | `ban` | `<@member> <reason> [delete_days: 0-7]` — Bans member and prunes messages |
-| `/unban` | — | — | `<user_id> [reason]` — Unbans user by numerical Discord ID |
-| `/mute` | `n!mute` | `mute` | `<@member> [duration: 10m] [reason]` — Puts member in timeout (min: `10s`, e.g. `30m`, `2h`, `1d`) |
-| `/unmute` | `n!unmute` | `unmute` | `<@member> [reason]` — Removes timeout from a member |
-| `/warn` | `n!warn` | `warn` | `<@member> <reason>` — Logs an official warning case to the database |
-| `/warnings` | `n!warnings` | `warnings` | `<@member>` — Displays active warnings with case numbers, timestamps, and mod names |
-| `/clearwarns` | — | — | `<@member>` — Clears all logged warnings for a member |
-| `/purge` | `n!purge` | `purge` | `[amount: 1-100]` — Bulk deletes channel messages |
-| `/lock` | `n!lock` | `lock` | `[#channel] [reason]` — Prevents `@everyone` from sending messages in the channel |
-| `/unlock` | `n!unlock` | `unlock` | `[#channel]` — Restores channel permissions to default |
-| `/slowmode` | `n!slowmode` | `slowmode` | `<seconds> [#channel]` — Sets rate limit delay (`0` to disable) |
-
-### Duration Format Guide:
-- `30s` = 30 seconds
-- `10m` = 10 minutes
-- `2h` = 2 hours
-- `1d` = 1 day
-- `1d12h` = 1 day 12 hours
-
----
-
-## 5. Announcements System
-
-Deploy professional server announcements with interactive popup modals.
-
-### Usage:
-```
-/announce channel:#announcements [type: Embed / Plain Text] [ping: @everyone / @here / None]
-```
-
-### Modal Fields:
-- **Title / Heading (Optional):** Supports bold/markdown. Leave blank for image-only posts.
-- **Announcement Content (Optional):** Full message body. Leave blank for photo-only announcements.
-- **Color / Theme (Optional):** `gold`, `red`, `green`, `blue`, `purple`, or hex `#5865F2`.
-- **Banner / Image URL (Optional):** Web image URL or uploaded attachment.
-- **Action Button (Optional):** Adds a clickable URL button (e.g. `Visit Website | https://example.com`).
-
-> 💡 **Image Display:** Images are uploaded as native Discord file attachments, eliminating unsightly link preview pills.
+| `/kick` | `staff` | `/kick <member> <reason>`<br>`n!kick <@member> <reason>` | **Mandatory reason.** DMs target and logs Case ID. |
+| `/ban` | `staff` | `/ban <member> <reason> [delete_days]`<br>`n!ban <@member> <reason>` | **Mandatory reason.** Optional 0-7 day message deletion. DMs target. |
+| `/unban` | `staff` | `/unban <user_id> [reason]`<br>`n!unban <user_id> [reason]` | Unbans user using their 18-19 digit Discord ID. |
+| `/softban` | `staff` | `/softban <member> <reason>`<br>`n!softban <@member> <reason>` | **Mandatory reason.** Bans and immediately unbans to wipe 24h of messages. |
+| `/mute` | `staff` | `/mute <member> <duration> <reason>`<br>`n!mute <@member> <duration> <reason>` | **Mandatory reason.** Timeout from 10s up to 28d (e.g. `10m`, `2h`, `1d`). |
+| `/unmute` | `staff` | `/unmute <member> [reason]`<br>`n!unmute <@member> [reason]` | Lifts timeout early. |
+| `/warn` | `staff` | `/warn <member> <reason>`<br>`n!warn <@member> <reason>` | Issues logged warning to database with DM notification. |
+| `/warnings` | `staff` | `/warnings <member>`<br>`n!warnings <@member>` | Displays chronological warning history with case numbers and reasons. |
+| `/clearwarns` | `staff` | `/clearwarns <member>` | Clears all warning history for target user. |
+| `/purge` | `staff` | `/purge <amount> [member]`<br>`n!purge <amount>` | Bulk deletes 1-100 messages in current channel with optional user filter. |
+| `/lock` | `staff` | `/lock [#channel] [reason]`<br>`n!lock` | Revokes `send_messages` from `@everyone` in channel. |
+| `/unlock` | `staff` | `/unlock [#channel]`<br>`n!unlock` | Restores normal `send_messages` to `@everyone`. |
+| `/lockdown` | `owner` | `/lockdown [scope] [reason]`<br>`n!lockdown [scope]` | **Emergency Server Lockdown:** Revokes messaging across ALL text channels. |
+| `/unlockdown` | `owner` | `/unlockdown [scope]`<br>`n!unlockdown [scope]` | Lifts emergency lockdown across all channels. |
+| `/hide` | `staff` | `/hide [#channel]`<br>`n!hide` | Hides channel from `@everyone`. |
+| `/unhide` | `staff` | `/unhide [#channel]`<br>`n!unhide` | Restores channel visibility to `@everyone`. |
+| `/slowmode` | `staff` | `/slowmode <seconds> [#channel]`<br>`n!slowmode <seconds>` | Sets channel chat cooldown (0-21600s). |
+| `/nick` | `staff` | `/nick <member> [nickname]`<br>`n!nick <@member> [nickname]` | Modifies or resets member server nickname. Works with prefix/no-prefix. |
+| `/role add` | `staff` | `/role add <member> <role>`<br>`n!role add <@member> <@role>` | Assigns role adhering to role hierarchy. Works with prefix/no-prefix. |
+| `/role remove` | `staff` | `/role remove <member> <role>`<br>`n!role remove <@member> <@role>` | Revokes role adhering to role hierarchy. Works with prefix/no-prefix. |
+| `/modlogs` | `staff` | `/modlogs <member>` | Displays complete immutable disciplinary history for user. |
 
 ---
 
-## 6. Direct Messaging (DM) System
+## 5. Server Management & Roles
 
-Send official server notices directly to user DMs with custom color themes and buttons.
-
-### Commands:
-- `/dm-user member:@User` (Alias: `/dm member:@User`)
-  *Opens popup modal to message an individual member.*
-- `/dm-role role:@Role`
-  *Opens popup modal to broadcast to every member holding a specific role.*
-
-### Modal Features:
-- **Subject / Title (Optional)**
-- **Message Content (Required)**
-- **Embed Color / Theme (Optional)**
-- **Banner / Image URL (Optional)**
-- **Action Button (Optional):** `Label | URL` (e.g. `Join Voice | https://discord.gg/...`)
-
-> 📊 **Audit & Delivery Stats:** Automatically reports delivery count (`sent` vs `failed/closed DMs`) and archives the message with full image in `🔒・activity-logs`.
+| Command | Tier | Invocation | Description |
+|---|---|---|---|
+| `/autorole set-human <role>` | `staff` | Slash / `n!autorole set <role>` | Automatically assigns role to new human members on joining. |
+| `/autorole view` | `staff` | Slash / `n!autorole` | Displays current human autorole configuration. |
+| `/autorole clear` | `staff` | Slash / `n!autorole clear` | Disables member autorole. |
+| `/reactionrole add` | `staff` | Slash | Attaches a persistent interactive button to any message for self-role assignment. |
+| `/reactionrole remove` | `staff` | Slash | Detaches self-role button from target message. |
 
 ---
 
-## 7. Giveaways System
+## 6. Engagement & Social
 
-Host automated giveaways with countdown timers and multi-role requirements.
-
-### Commands:
-- `/giveaway start channel:#giveaways duration:2d prize:Nitro winners:1 [role:Role Requirements]`
-- `/giveaway end message_id:1234567890`
-- `/giveaway reroll message_id:1234567890 [winners:1]`
-- `/giveaway list`
-
-### 🎯 Multi-Role Requirements & Ineligible Member Notification:
-You can require multiple roles in a single string input:
-```
-/giveaway start channel:#giveaways duration:24h prize:VIP Pass role:@Subscriber, @Booster, @VIP
-```
-- **Single-Time DM Warning:** If an ineligible member reacts to enter, the bot sends them **one** private DM explaining they lack the required role.
-- **Silent Auto-Removal:** If the member attempts to react again to the same giveaway, the reaction is silently removed without spamming their DMs.
+| Command | Tier | Invocation | Description |
+|---|---|---|---|
+| `/rank [member]` | `public` | Slash / `n!rank` | Displays member level, XP, rank card, and progress towards next level. |
+| `/leaderboard [page]` | `public` | Slash / `n!leaderboard` | Server top 10 most active members by XP with trophy badges. |
+| `/leveling toggle <state>` | `staff` | Slash | Master toggle for chat XP tracking. |
+| `/leveling rates` | `staff` | Slash | Configures min/max XP awarded per message and cooldown. |
+| `/leveling rewards` | `staff` | Slash | Automatically assigns Discord roles when members hit milestone levels. |
+| `/afk [reason]` | `public` | Slash / `n!afk [reason]` | Sets AFK status. Alerts anyone who pings you and clears on your next message. |
+| `/autoresponder add` | `staff` | Slash | Creates keyword-triggered automated bot reply (exact or contains). |
+| `/autoresponder list` | `staff` | Slash | Displays all custom autoresponder triggers. |
 
 ---
 
-## 8. Polls System
+## 7. Mini-Games
 
-Create clean, interactive voting cards with live button clicks.
-
-### Commands:
-- `/poll channel:#polls [role:@Voters]`
-  *Opens modal popup asking for Question and Options 1 to 5.*
-- `/endpoll message_id:1234567890`
-  *Closes the poll early and tallies the final results.*
-
-### Features:
-- **One Vote Per User:** Members can change their vote, but cannot vote multiple times.
-- **Role Restriction:** Restrict voting eligibility to members with a specific role.
+| Command | Tier | Invocation | Description |
+|---|---|---|---|
+| `/tictactoe <opponent>` | `public` | Slash / `n!tictactoe <@opponent>` | Interactive 3x3 button Tic-Tac-Toe. Player turns and unauthorized clicks are strictly enforced. |
+| `/rps [opponent]` | `public` | Slash / `n!rps [@opponent]` | Rock-Paper-Scissors against the bot or 2-player match with hidden secret selections. |
+| `/guess` | `public` | Slash / `n!guess` | Number guessing game (1-100). **Edits the same single message on every guess** with higher/lower hints. |
 
 ---
 
-## 9. Support Ticket System
+## 8. Announcements & Direct Messaging
 
-Full-featured private support ticket channels with transcript tracking.
-
-### Commands:
-- `/ticket setup channel:#tickets`
-  *Sends the official ticket creation panel with an interactive `📩 Open Ticket` button.*
-- `/ticket set-role role:@SupportStaff`
-  *Designates the staff role that has access to view and respond to tickets.*
-- `/ticket close [reason]`
-  *Closes the ticket channel and generates an activity log entry.*
-- `/ticket add member:@User`
-  *Adds an additional member into the ticket.*
-- `/ticket remove member:@User`
-  *Removes a member from the ticket.*
+| Command | Tier | Invocation | Description |
+|---|---|---|---|
+| `/announce` | `staff` | Slash | Interactive modal announcement builder: Title, Description, Color hex, native image attachment, URL button, and optional @everyone/@here ping. |
+| `/dm-user <user> <message>` | `staff` | Slash / `/dm` | Sends official server notification direct message to a user with delivery logged in activity logs. |
+| `/dm-role <role>` | `staff` | Slash | Broadcasts a formatted DM to all members of a role with progress updates and rate-limit throttling. |
 
 ---
 
-## 10. Audit & Command Logging System
+## 9. Giveaways & Polls
 
-Nexus provides comprehensive, multi-channel audit logging:
+| Command | Tier | Invocation | Description |
+|---|---|---|---|
+| `/gstart <duration> <winners> <prize> [roles]` | `staff` | Slash | Launches giveaway with multi-role entry requirements. Survives bot reboots. |
+| `/gend <message_id>` | `staff` | Slash | Immediately concludes an active giveaway and picks winners. |
+| `/greroll <message_id>` | `staff` | Slash | Rerolls new winners from eligible participants. |
+| `/glist` | `staff` | Slash | Lists all active giveaways in the server. |
+| `/poll` | `staff` | Slash | Modal poll creator (1-5 options, button voting, single vote per user, optional role restriction). |
+| `/endpoll <message_id>` | `staff` | Slash | Concludes poll and posts final percentage breakdown. |
 
-| Channel | Config Key | Recorded Events |
-|---|---|---|
-| `🔒・mod-logs` | `mod_log_ch` | Kicks, Bans, Timeouts, Warnings (includes `⚡ No Prefix`, `🏷️ Prefix`, or `📱 Slash Command`) |
-| `🔒・server-logs` | `server_log_ch` | Channel Locks, Unlocks, Slowmode adjustments, Message Purges |
-| `🔒・activity-logs` | `activity_log_ch` | Staff DMs, Ticket creations/closures, Giveaway winners & ends |
-| `⌨️ Command Logs` | `cmd_log_ch` | Every prefix (`n!`) and non-prefix command executed across the server |
+---
 
-### Customizing Log Channels:
-```
-/set-log channel:#my-mod-logs
-/set-cmdlog channel:#my-command-logs
-```
+## 10. Support Tickets
+
+| Command | Tier | Invocation | Description |
+|---|---|---|---|
+| `/ticket setup <channel>` | `staff` | Slash | Deploys interactive '📩 Open Ticket' panel into target channel. |
+| `/ticket set-role <role>` | `staff` | Slash | Designates support staff role automatically granted access to new tickets. |
+| `/ticket close` | `staff` / `owner` | Slash / `n!ticket close` | **Staff and Server Owner only.** Closes ticket, compiles full `.txt` transcript, DMs copy to user, and archives to activity logs. |
+| `/ticket add <member>` | `staff` | Slash / `n!ticket add <@member>` | Grants member access to private ticket channel. |
+| `/ticket remove <member>` | `staff` | Slash / `n!ticket remove <@member>` | Revokes member access from ticket channel. |
+
+---
+
+## 11. Utility & Diagnostics
+
+| Command | Tier | Invocation | Description |
+|---|---|---|---|
+| `/help [category]` | `staff` | Slash / `n!help` | **Staff role only.** Interactive categorized dropdown manual of all bot features and syntax. |
+| `/userinfo [member]` | `public` | Slash / `n!userinfo` | Deep profile inspection: ID, join date, account creation date, badges, permissions, and roles. |
+| `/serverinfo` | `public` | Slash / `n!serverinfo` | Professional, comprehensive server breakdown: owner, creation date, boost tier, demographics, and security. |
+| `/ping` | `bot_owner` | Slash / `n!ping` | **Bot Owner Only.** Displays gateway WebSocket latency and REST API roundtrip time. |
+| `/stats` | `bot_owner` | Slash / `n!stats` | **Bot Owner Only.** Displays cluster reach, total servers, audience reach, environment, and uptime. |
+| `/uptime` | `bot_owner` | Slash / `n!uptime` | **Bot Owner Only.** Exact uptime elapsed since bot container started. |
+
+---
+
+## 12. Global Bot Owner Commands
+
+| Command | Tier | Syntax | Description |
+|---|---|---|---|
+| `n!sync` | `bot_owner` | `n!sync [guild\|force]` | Synchronizes application slash commands with Discord API with automatic rate-limit backoff. |
+| `n!addnp` | `bot_owner` | `n!addnp <user_id>` | Grants a user non-prefix execution rights across all servers. |
+| `n!removenp` | `bot_owner` | `n!removenp <user_id>` | Revokes non-prefix execution privileges from a user. |
+| `n!nplist` | `bot_owner` | `n!nplist` | Lists all users currently authorized on the global non-prefix allowlist. |

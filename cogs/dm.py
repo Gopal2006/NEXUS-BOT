@@ -6,49 +6,13 @@ Features:
   /dm-role — Interactive popup modal to broadcast rich formatted DMs to an entire role
 """
 
+import asyncio
 import discord
 from discord.ext import commands
 from discord import option
-import aiosqlite
-import asyncio
-from pathlib import Path
-
-DB_PATH = Path("nexus.db")
-GLOBAL_OWNER_ID = 1201050377911554061
-
-# ── Color Presets ─────────────────────────────────────────────────────────────
-COLOR_PRESETS = {
-    "blurple": 0x5865F2,
-    "blue":    0x3498DB,
-    "red":     0xED4245,
-    "green":   0x57F287,
-    "gold":    0xFEE75C,
-    "yellow":  0xFFFF00,
-    "purple":  0x9B59B6,
-    "fuchsia": 0xEB459E,
-    "pink":    0xFF70A6,
-    "cyan":    0x1ABC9C,
-    "teal":    0x008080,
-    "orange":  0xE67E22,
-    "black":   0x23272A,
-    "dark":    0x2B2D31,
-    "white":   0xFFFFFF,
-}
-
-
-def parse_color(color_val: str, default: int = 0x5865F2) -> int:
-    """Parses color names (e.g. 'gold', 'red') or hex codes (e.g. '#5865F2')."""
-    if not color_val:
-        return default
-    cleaned = color_val.strip().lower()
-    if cleaned in COLOR_PRESETS:
-        return COLOR_PRESETS[cleaned]
-    clean_hex = cleaned.lstrip("#")
-    try:
-        return int(clean_hex, 16)
-    except ValueError:
-        return default
-
+from core.permissions import has_tier_permission, send_no_permission
+from db.database import get_config
+from core.ui import COLOR_PRESETS, parse_color
 
 def build_button_view(button_str: str) -> discord.ui.View | None:
     """Constructs a clickable Link Button View if formatted as 'Label | URL' or 'URL'."""
@@ -70,66 +34,12 @@ def build_button_view(button_str: str) -> discord.ui.View | None:
     view.add_item(discord.ui.Button(label=label or "Visit Link", url=url, style=discord.ButtonStyle.link))
     return view
 
-
-async def get_config(guild_id):
-    async with aiosqlite.connect(DB_PATH) as db:
-        db.row_factory = aiosqlite.Row
-        async with db.execute("SELECT * FROM guild_config WHERE guild_id=?", (guild_id,)) as cur:
-            row = await cur.fetchone()
-        if row is None:
-            await db.execute("INSERT INTO guild_config (guild_id) VALUES (?)", (guild_id,))
-            await db.commit()
-            async with db.execute("SELECT * FROM guild_config WHERE guild_id=?", (guild_id,)) as cur:
-                row = await cur.fetchone()
-        return dict(row)
-
-
 async def is_bot_admin(ctx) -> bool:
-    """Server owner, global owner, non-prefix user, or member with the configured bot-role."""
-    if ctx.author.id == GLOBAL_OWNER_ID:
-        return True
-    if hasattr(ctx, "bot") and ctx.author.id in getattr(ctx.bot, "non_prefix_users", set()):
-        return True
-    if ctx.guild is None:
-        return False
-    if ctx.author.id == ctx.guild.owner_id:
-        return True
-    cfg = await get_config(ctx.guild.id)
-    role_id = cfg.get("bot_role_id")
-    if role_id:
-        member = ctx.guild.get_member(ctx.author.id) or ctx.author
-        if hasattr(member, "roles"):
-            return any(r.id == role_id for r in member.roles)
-    return False
-
+    return await has_tier_permission(ctx, tier="staff")
 
 async def no_perm(ctx):
-    """Ephemeral 'ask server owner for bot role' response."""
-    if ctx.guild is None:
-        embed = discord.Embed(
-            title="🔒 Access Denied",
-            description="Commands can only be used inside a server.",
-            color=0xED4245,
-        )
-        if hasattr(ctx, "respond"):
-            return await ctx.respond(embed=embed, ephemeral=True)
-        return await ctx.reply(embed=embed)
+    return await send_no_permission(ctx)
 
-    cfg = await get_config(ctx.guild.id)
-    role_id  = cfg.get("bot_role_id")
-    bot_role = ctx.guild.get_role(role_id) if role_id else None
-    tip = (
-        f"You need the **{bot_role.name}** role to use bot commands.\n"
-        "Please ask the **server owner** to grant you this role."
-        if bot_role else
-        "You don't have permission to use bot commands.\n"
-        "Please ask the **server owner** to assign a bot-role using `/set-botrole`."
-    )
-    embed = discord.Embed(title="🔒 Bot-Role Required", description=tip, color=0xED4245)
-    if hasattr(ctx, "respond"):
-        await ctx.respond(embed=embed, ephemeral=True)
-    else:
-        await ctx.reply(embed=embed, delete_after=15)
 
 
 async def log_activity(guild: discord.Guild, embed: discord.Embed):
@@ -372,12 +282,15 @@ class RoleDMModal(discord.ui.Modal):
                 ephemeral=True,
             )
 
+        # Safety cap: max 100 recipients per broadcast
+        MAX_DM_ROLE_RECIPIENTS = 100
+        target_members = members[:MAX_DM_ROLE_RECIPIENTS]
         sent, failed = 0, 0
-        for m in members:
+        for m in target_members:
             try:
                 await m.send(embed=dm_embed, view=button_view)
                 sent += 1
-                await asyncio.sleep(0.35)
+                await asyncio.sleep(0.5)  # Throttled 500ms delay between DMs
             except Exception:
                 failed += 1
 

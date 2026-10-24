@@ -5,75 +5,26 @@ Commands:
   /endpoll — manually conclude a poll and lock voting
 """
 
+import json
+import time
+import asyncio
+from pathlib import Path
 import discord
 from discord.ext import commands
 from discord import option
-import aiosqlite
-import asyncio
-from pathlib import Path
 
-DB_PATH = Path("nexus.db")
-GLOBAL_OWNER_ID = 1201050377911554061
+from core.config import is_bot_owner
+from core.permissions import has_tier_permission, send_no_permission
+from db.database import get_config, get_db
 
 NUMBER_EMOJIS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
 
-
-async def get_config(guild_id):
-    async with aiosqlite.connect(DB_PATH) as db:
-        db.row_factory = aiosqlite.Row
-        async with db.execute("SELECT * FROM guild_config WHERE guild_id=?", (guild_id,)) as cur:
-            row = await cur.fetchone()
-        if row is None:
-            await db.execute("INSERT INTO guild_config (guild_id) VALUES (?)", (guild_id,))
-            await db.commit()
-            async with db.execute("SELECT * FROM guild_config WHERE guild_id=?", (guild_id,)) as cur:
-                row = await cur.fetchone()
-        return dict(row)
-
-
 async def is_bot_admin(ctx) -> bool:
-    """Server owner, global owner, or member with the bot-role.
-    Administrators without the bot-role are NOT granted access."""
-    if ctx.author.id == GLOBAL_OWNER_ID:
-        return True
-    if ctx.guild is None:
-        return False
-    if ctx.author.id == ctx.guild.owner_id:
-        return True
-    cfg = await get_config(ctx.guild.id)
-    role_id = cfg.get("bot_role_id")
-    if role_id and any(r.id == role_id for r in ctx.author.roles):
-        return True
-    return False
-
+    return await has_tier_permission(ctx, tier="staff")
 
 async def no_perm(ctx):
-    """Ephemeral 'ask server owner for bot role' response."""
-    if ctx.guild is None:
-        embed = discord.Embed(
-            title="🔒 Access Denied",
-            description="Commands can only be used inside a server.",
-            color=0xED4245,
-        )
-        if hasattr(ctx, "respond"):
-            return await ctx.respond(embed=embed, ephemeral=True)
-        return await ctx.reply(embed=embed)
+    return await send_no_permission(ctx)
 
-    cfg = await get_config(ctx.guild.id)
-    role_id  = cfg.get("bot_role_id")
-    bot_role = ctx.guild.get_role(role_id) if role_id else None
-    tip = (
-        f"You need the **{bot_role.name}** role to use bot commands.\n"
-        "Please ask the **server owner** to grant you this role."
-        if bot_role else
-        "You don't have permission to use bot commands.\n"
-        "Please ask the **server owner** to assign a bot-role using `/set-botrole`."
-    )
-    embed = discord.Embed(title="🔒 Bot-Role Required", description=tip, color=0xED4245)
-    if hasattr(ctx, "respond"):
-        await ctx.respond(embed=embed, ephemeral=True)
-    else:
-        await ctx.reply(embed=embed, delete_after=15)
 
 
 class PollView(discord.ui.View):
@@ -156,6 +107,17 @@ class PollView(discord.ui.View):
             new_embed = self.build_embed()
             await interaction.response.edit_message(embed=new_embed, view=self)
 
+            # Persist votes to DB
+            try:
+                db = await get_db()
+                await db.execute(
+                    "UPDATE polls SET votes_json=? WHERE message_id=?",
+                    (json.dumps(self.votes), interaction.message.id),
+                )
+                await db.commit()
+            except Exception:
+                pass
+
             if changed:
                 await interaction.followup.send(
                     f"🔄 Your vote has been changed to **{choice_name}**!", ephemeral=True
@@ -170,7 +132,7 @@ class PollView(discord.ui.View):
     async def end_poll_callback(self, interaction: discord.Interaction):
         # Only poll creator, bot owner, server owner, or bot-role holder can end poll
         is_host = interaction.user.id == self.host_id
-        is_owner = interaction.user.id in (GLOBAL_OWNER_ID, interaction.guild.owner_id)
+        is_owner = is_bot_owner(interaction.user.id) or interaction.user.id == interaction.guild.owner_id
         cfg = await get_config(interaction.guild.id)
         bot_role_id = cfg.get("bot_role_id")
         author = interaction.guild.get_member(interaction.user.id) or interaction.user
@@ -192,6 +154,12 @@ class PollView(discord.ui.View):
 
         embed = self.build_embed(ended=True, ended_by=interaction.user)
         await interaction.response.edit_message(embed=embed, view=self)
+        try:
+            db = await get_db()
+            await db.execute("UPDATE polls SET ended=1 WHERE message_id=?", (interaction.message.id,))
+            await db.commit()
+        except Exception:
+            pass
         self.stop()
 
     def build_embed(self, ended: bool = False, ended_by: discord.Member = None) -> discord.Embed:
@@ -236,7 +204,21 @@ class PollView(discord.ui.View):
         return embed
 
 
+class InteractivePollView(PollView):
+    """Subclass of PollView providing automatic emoji mapping and dashboard compatibility."""
+    def __init__(self, question: str, choices: list[str], host_id: int = 0, duration_min: int = 60, **kwargs):
+        emojis = NUMBER_EMOJIS[:len(choices)]
+        super().__init__(question=question, choices=choices, emojis=emojis, host_id=host_id, **kwargs)
+        self.duration_min = duration_min
+
+
+def build_poll_embed(question: str, choices: list[str], votes: dict = None, host_id: int = 0, duration_min: int = 60) -> discord.Embed:
+    v = InteractivePollView(question, choices, host_id=host_id, duration_min=duration_min)
+    return v.build_embed()
+
+
 # ── Poll Modal ────────────────────────────────────────────────────────────────
+
 class PollModal(discord.ui.Modal):
     """
     Interactive modal popup for creating polls.
@@ -349,6 +331,28 @@ class PollModal(discord.ui.Modal):
 
         self.active_polls[msg.id] = view
 
+        # Persist poll to DB
+        try:
+            db = await get_db()
+            await db.execute(
+                """INSERT OR REPLACE INTO polls 
+                   (message_id, channel_id, guild_id, question, options_json, votes_json, allowed_role_id, created_at, ended)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)""",
+                (
+                    msg.id,
+                    self.target_channel.id,
+                    interaction.guild.id,
+                    question,
+                    json.dumps(choices),
+                    json.dumps({}),
+                    self.required_role.id if self.required_role else None,
+                    time.time(),
+                ),
+            )
+            await db.commit()
+        except Exception:
+            pass
+
         role_info = f"\n🔒 **Eligible Role:** {self.required_role.mention}" if self.required_role else ""
         await interaction.followup.send(
             embed=discord.Embed(
@@ -419,6 +423,12 @@ class Polls(commands.Cog):
             except Exception:
                 pass
             self.active_polls.pop(mid, None)
+            try:
+                db = await get_db()
+                await db.execute("UPDATE polls SET ended=1 WHERE message_id=?", (mid,))
+                await db.commit()
+            except Exception:
+                pass
             return await ctx.respond(
                 embed=discord.Embed(description="🏁 Poll has been concluded.", color=0x57F287),
                 ephemeral=True,
@@ -441,6 +451,46 @@ class Polls(commands.Cog):
                 embed=discord.Embed(description=f"❌ Could not find poll message in this channel: `{e}`", color=0xED4245),
                 ephemeral=True,
             )
+
+
+    @commands.Cog.listener()
+    async def on_interaction(self, interaction: discord.Interaction):
+        """Restores poll views from database if clicked after a bot restart."""
+        if interaction.type != discord.InteractionType.component:
+            return
+
+        cid = interaction.data.get("custom_id", "")
+        if not (cid.startswith("poll_opt_") or cid == "poll_end_btn"):
+            return
+
+        msg = interaction.message
+        if not msg:
+            return
+
+        if msg.id not in self.active_polls:
+            try:
+                db = await get_db()
+                async with db.execute("SELECT * FROM polls WHERE message_id=? AND ended=0", (msg.id,)) as cur:
+                    row = await cur.fetchone()
+                if row:
+                    choices = json.loads(row["options_json"])
+                    raw_votes = json.loads(row["votes_json"])
+                    votes = {int(k): v for k, v in raw_votes.items()}
+                    role = interaction.guild.get_role(row["allowed_role_id"]) if row["allowed_role_id"] else None
+                    is_yes_no = (len(choices) == 2 and choices[0].lower() == "yes" and choices[1].lower() == "no")
+                    emojis = ["✅", "❌"] if is_yes_no else NUMBER_EMOJIS[:len(choices)]
+                    view = PollView(
+                        question=row["question"],
+                        choices=choices,
+                        emojis=emojis,
+                        host_id=interaction.user.id,
+                        required_role=role,
+                    )
+                    view.votes = votes
+                    self.active_polls[msg.id] = view
+                    self.bot.add_view(view, message_id=msg.id)
+            except Exception:
+                pass
 
 
 def setup(bot):
