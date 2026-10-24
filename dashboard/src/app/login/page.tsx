@@ -14,8 +14,10 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const errorParam = searchParams.get("error");
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const rawCallback = searchParams.get("callbackUrl");
+  const callbackUrl = rawCallback && !rawCallback.startsWith("/login") ? rawCallback : "/dashboard";
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [sessionTimeout, setSessionTimeout] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.hostname === "127.0.0.1") {
@@ -24,10 +26,17 @@ function LoginContent() {
   }, []);
 
   useEffect(() => {
-    if (status === "authenticated") {
-      router.replace(callbackUrl);
+    const timer = setTimeout(() => {
+      setSessionTimeout(true);
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (status === "authenticated" && !errorParam) {
+      window.location.href = callbackUrl;
     }
-  }, [status, router, callbackUrl]);
+  }, [status, callbackUrl, errorParam]);
 
   const getErrorMessage = (err: string | null) => {
     if (!err) return null;
@@ -48,7 +57,7 @@ function LoginContent() {
 
   const errorMessage = getErrorMessage(errorParam);
 
-  if (status === "loading" || status === "authenticated") {
+  if ((status === "loading" || status === "authenticated") && !errorParam && !sessionTimeout) {
     return (
       <div className="glass-strong rounded-2xl p-10 max-w-md w-full text-center space-y-4 shadow-2xl relative z-10">
         <Loader2 className="w-8 h-8 text-[var(--ice-silver)] animate-spin mx-auto" />

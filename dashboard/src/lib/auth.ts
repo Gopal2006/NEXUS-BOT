@@ -15,11 +15,11 @@ export const authOptions: NextAuthOptions = {
       clientId: rawClientId,
       clientSecret: clientSecret,
       authorization: { params: { scope: "identify guilds" } },
-      issuer: "https://discord.com",
-      checks: ["none"],
     }),
   ],
-  useSecureCookies: false,
+  session: {
+    strategy: "jwt",
+  },
   callbacks: {
     async session({ session, token }) {
       if (session.user && token.sub) {
@@ -39,8 +39,9 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/login",
+    error: "/login",
   },
-  debug: true,
+  debug: process.env.NODE_ENV === "development",
   logger: {
     error(code, metadata) {
       console.error(`[NextAuth Error] [${code}]:`, metadata);

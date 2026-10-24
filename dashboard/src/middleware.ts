@@ -26,7 +26,7 @@ export default withAuth(
     pages: {
       signIn: "/login",
     },
-    secret: process.env.NEXTAUTH_SECRET || "local_development_secret_key_32_characters_long_min",
+    secret: process.env.NEXTAUTH_SECRET || "local_dev_secret_fallback_key_32_characters",
   }
 );
 
