@@ -234,7 +234,7 @@ There is also a separate aiohttp control center in `web/index.html` and `web/com
 
 ### OAuth / bot permissions
 
-The generated bot invite requests permission integer **8**, which is Discord **Administrator**, and scopes `bot applications.commands`. Administrator grants broad permissions; the code does not derive a least-privilege permission bitfield. A landing page should explain this honestly and recommend reviewing/reducing permissions before publishing an invite. Evidence: `core/events.py`.
+The generated bot invite requests permission integer **1374792445014** and scopes `bot applications.commands`. This is the audited permission bitfield for the bot's implemented moderation, role/channel, messaging, and interaction features; it excludes Administrator. Server owners should still review the authorization screen, feature use, and bot role hierarchy. Evidence: `core/config.py`, `core/events.py`, and the permission checks in `cogs/` and `api/`.
 
 Dashboard OAuth requests `identify guilds`; it uses Discord identity and guild list to select authorized servers. Evidence: `dashboard/src/lib/auth.ts`, `api/auth.py`.
 
@@ -264,7 +264,7 @@ No premium gating, subscription, payment, SKU, or entitlement logic was found in
 
 ## 8. Links and assets
 
-- Invite: runtime-generated from the active bot ID; source hardcodes permission integer 8 (Administrator) and `bot applications.commands` scopes. No stable public invite URL configured. Evidence: `core/events.py`.
+- Invite: the landing page has a configured OAuth invite for the production bot ID, using the scoped permission integer 1374792445014 and `bot applications.commands` scopes. Runtime-generated links use the active bot ID. Evidence: `landing/src/config.ts`, `core/config.py`, `core/events.py`.
 - Support server: `SUPPORT_SERVER` defaults to `https://discord.gg/PLACEHOLDER`; actual public invite not found. Evidence: `core/config.py`.
 - GitHub repository, documentation site, top.gg listing, public status page, contact email: not found.
 - Existing logo, favicon, screenshots: not found in repository assets. The project includes a web command encyclopedia, which is an internal/local page, not published docs. Evidence: `web/commands.html`, repository asset search.
@@ -291,7 +291,7 @@ This curated map is used to generate landing/src/data/features.json. Description
 
 ## Gaps / needs human input
 
-1. Production Discord bot invite URL and confirmation that Administrator permission integer 8 is intended; ideally choose a least-privilege permission set.
+1. Verify the audited invite permission bitfield (1374792445014) against the production bot's enabled features and role hierarchy before publishing the invite.
 2. Real support-server URL (current value is a placeholder).
 3. Approved logo/avatar, favicon, and any brand assets.
 4. Public live server/member/command counts or explicit decision to omit stats.
@@ -299,5 +299,6 @@ This curated map is used to generate landing/src/data/features.json. Description
 6. Human-reviewed Privacy Policy and Terms; source audit did not find comprehensive retention/deletion/opt-out practices. Dashboard stores IP/user-agent data.
 7. Confirm paid-plan positioning: no payment code is present, but operator should approve any “free” promise.
 8. Confirm whether schema-only features (birthdays, verification, sticky messages, counting, invite tracking, join-to-create channels) are intended to be advertised; active implementations were not found.
-9. Confirm copy/permission guidance for the bot’s currently generated Administrator invite.
+9. Review the public permission guidance against the production bot configuration.
 10. Confirm final product name styling (“Nexus” vs “NEXUS BOT”) and whether prior visual assets exist outside this repository.
+11. Configure Vercel routing so the landing page serves `/` and the dashboard is reachable at `/dashboard`; the currently observed deployment serves the dashboard at `/`.

@@ -8,7 +8,7 @@ import logging
 import discord
 from discord.ext import commands
 
-from core.config import is_bot_owner, SUPPORT_SERVER, BRAND_NAME
+from core.config import is_bot_owner, SUPPORT_SERVER, BRAND_NAME, BOT_INVITE_PERMISSIONS
 from core.bot import disable_windows_quickedit
 from db.database import get_config, add_non_prefix_user, remove_non_prefix_user
 from db.repos.management import get_welcome_extras
@@ -41,7 +41,7 @@ def setup_core_events(bot: commands.Bot):
         log.info(f"Loaded {slash_count} slash command definition(s) ✓")
 
         invite_url = (
-            f"https://discord.com/api/oauth2/authorize?client_id={bot.user.id}&permissions=8&scope=bot%20applications.commands"
+            f"https://discord.com/api/oauth2/authorize?client_id={bot.user.id}&permissions={BOT_INVITE_PERMISSIONS}&scope=bot%20applications.commands"
         )
         log.info(f"Invite URL: {invite_url}")
 
@@ -122,7 +122,7 @@ def setup_core_events(bot: commands.Bot):
 
         if target_ch:
             client_id = bot.user.id if bot.user else "1560655249276936192"
-            reauth_url = f"https://discord.com/api/oauth2/authorize?client_id={client_id}&permissions=8&scope=bot%20applications.commands"
+            reauth_url = f"https://discord.com/api/oauth2/authorize?client_id={client_id}&permissions={BOT_INVITE_PERMISSIONS}&scope=bot%20applications.commands"
             embed = discord.Embed(
                 title=f"👋 Thanks for adding {BRAND_NAME}!",
                 description=(
@@ -495,7 +495,7 @@ def setup_core_events(bot: commands.Bot):
     @bot.command(name="invite")
     async def cmd_invite(ctx: commands.Context):
         client_id = bot.user.id if bot.user else "1560655249276936192"
-        url = f"https://discord.com/api/oauth2/authorize?client_id={client_id}&permissions=8&scope=bot%20applications.commands"
+        url = f"https://discord.com/api/oauth2/authorize?client_id={client_id}&permissions={BOT_INVITE_PERMISSIONS}&scope=bot%20applications.commands"
         embed = discord.Embed(
             title=f"🤖 Invite {BRAND_NAME} to Your Server",
             description=(

@@ -2,6 +2,7 @@
 import SiteLayout from "../layouts/SiteLayout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
+import featureData from "../data/features.json";
 ---
 <SiteLayout title="NEXUS terms — draft for review" description="A preliminary NEXUS terms page based on implemented bot behavior. Human and legal review required." path="/terms/">
   <SiteHeader active="trust" />
@@ -15,7 +16,7 @@ import SiteFooter from "../components/SiteFooter.astro";
       <p>NEXUS is Discord bot software with moderation commands, server configuration, member support tickets, leveling, giveaways, polls, and related features. A separate web dashboard and API are present in the repository. The available features and access tiers are listed in the <a href="/commands/">command reference</a>.</p>
 
       <h2>Server permissions and administrator decisions</h2>
-      <p>The current invite generator requests Discord's Administrator permission (integer 8). This permission is broad. Server owners should review the authorization screen and the bot's role/access configuration before inviting or using it. NEXUS performs management actions only where the command's access checks and Discord permissions allow them.</p>
+      <p>The invite requests a scoped set of Discord permissions for the audited moderation, role/channel, messaging, and interaction features (permission integer {featureData.verifiedFacts.invitationPermissionInteger}); it excludes Administrator. Server owners should review the authorization screen and the bot's role/access configuration before inviting or using it. NEXUS performs management actions only where command access checks and Discord permissions allow them.</p>
 
       <h2>Operator and user responsibilities</h2>
       <p>Server owners and moderators should configure roles, channels, logs, and access to fit their server. The source includes moderation operations that can affect members and channels. Use those operations with care and follow the rules that apply to your community.</p>

@@ -47,7 +47,6 @@ const structuredData = {
             </a>
           </div>
           <p class="hero-note">Slash commands and <code>n!</code> prefix commands. Server owners choose who can manage the bot.</p>
-          <span class="invite-reminder">Invite link not configured yet</span>
         </div>
         <div class="hero-chat-shell" aria-label="Illustration of a NEXUS ticket and moderation flow">
           <div class="chat-top">
@@ -182,10 +181,10 @@ const structuredData = {
         <div class="trust-copy reveal">
           <span class="section-kicker">Access and data</span>
           <h2 id="trust-title">Know what access means.</h2>
-          <p>The current invite requests Administrator. Review that before authorizing NEXUS.</p>
-          <div class="admin-warning">
-            <strong><span aria-hidden="true">!</span> Administrator permission requested</strong>
-            <p>The bot invite is generated with permission integer <code>{featureData.verifiedFacts.invitationPermissionInteger}</code>, which grants Administrator. The code does not document a narrower rationale or least-privilege bitfield.</p>
+          <p>The invite requests a scoped set of permissions used by NEXUS features. Review the authorization screen before adding the bot.</p>
+          <div class="trust-note">
+            <strong>Scoped bot permissions</strong>
+            <p>The invite uses permission integer <code>{featureData.verifiedFacts.invitationPermissionInteger}</code>. It excludes Administrator and covers the audited moderation, role/channel, messaging, and interaction features.</p>
           </div>
         </div>
         <div class="trust-details">
@@ -196,7 +195,7 @@ const structuredData = {
               <li><svg viewBox="0 0 20 20" fill="none"><path d="m4 10 4 4 8-8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg><span>Role and channel management for staff controls, autoroles, reaction roles, and private ticket channels.</span></li>
               <li><svg viewBox="0 0 20 20" fill="none"><path d="m4 10 4 4 8-8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg><span>Creating and writing to the log channels selected during setup.</span></li>
             </ul>
-            <p style="margin-top:14px">Server owners can review the invite permissions and use a dedicated NEXUS management role for the bot's staff checks. A custom role does not override Administrator while that permission remains granted.</p>
+            <p style="margin-top:14px">Server owners should review the requested permissions and keep the NEXUS role below protected staff roles. Discord role hierarchy still limits which members and roles the bot can manage.</p>
           </article>
           <article class="trust-panel reveal">
             <h3>Gateway intents, in plain words</h3>
@@ -223,11 +222,11 @@ const structuredData = {
           <p style="margin-top:16px">Answers are based on the current source audit. Missing public links are called out as missing.</p>
         </div>
         <div class="faq-list">
-          <details class="faq-item"><summary>Why does NEXUS ask for Administrator?</summary><div class="faq-answer"><p>The current invite generator uses permission integer {featureData.verifiedFacts.invitationPermissionInteger}, which is Administrator. The source does not document why that broad permission was chosen. Review the permission screen before authorizing the bot.</p></div></details>
+          <details class="faq-item"><summary>What permissions does NEXUS request?</summary><div class="faq-answer"><p>The invite uses permission integer {featureData.verifiedFacts.invitationPermissionInteger}, a scoped set for the audited moderation, role/channel, messaging, and interaction features. It excludes Administrator. Review the Discord authorization screen and role hierarchy before adding the bot.</p></div></details>
           <details class="faq-item"><summary>What data does NEXUS store?</summary><div class="faq-answer"><p>SQLite stores server settings and feature records such as moderation cases, warnings, ticket metadata, poll data, XP, and configured responses. Command audit text may include up to {featureData.verifiedFacts.commandTextMaxCharacters} characters of the command message. There is no general retention or deletion process documented in the audited code. <a href="/privacy/">Read the privacy draft.</a></p></div></details>
           <details class="faq-item"><summary>Who can run management commands?</summary><div class="faq-answer"><p>Public commands are available to server members. Staff commands are restricted to the server owner, the configured Bot-Role, bot owners, or the non-prefix allowlist as implemented. Some settings are server-owner-only; each command shows its tier in the <a href="/commands/">reference</a>.</p></div></details>
           <details class="faq-item"><summary>Do slash and prefix commands both work?</summary><div class="faq-answer"><p>Yes. Slash commands are registered with Discord. Normal prefix commands use <code>n!</code>; empty-prefix access is restricted to bot owners and allowlisted users. Not every slash command has a prefix counterpart.</p></div></details>
-          <details class="faq-item"><summary>Is there a web dashboard?</summary><div class="faq-answer"><p>Yes. The Next.js dashboard uses Discord OAuth, a server picker, and modules for settings, moderation, tickets, leveling, and other audited features. The public dashboard URL is not configured here.</p></div></details>
+          <details class="faq-item"><summary>Is there a web dashboard?</summary><div class="faq-answer"><p>Yes. The Next.js dashboard uses Discord OAuth, a server picker, and modules for settings, moderation, tickets, leveling, and other audited features. <a href={DASHBOARD_URL} target="_blank" rel="noreferrer">Open the NEXUS dashboard</a>.</p></div></details>
           <details class="faq-item"><summary>How do I set up the log channels?</summary><div class="faq-answer"><p>Run <code>/setupbot</code> with the required server access. It creates a private NEXUS LOGS category and four log channels, then stores their IDs.</p></div></details>
           <details class="faq-item"><summary>Are there paid plans?</summary><div class="faq-answer"><p>No paid-tier or payment logic was found in the current code. The operator should confirm this before it is treated as a public pricing promise.</p></div></details>
           <details class="faq-item"><summary>Where can I get support?</summary><div class="faq-answer"><p>The repository currently has a placeholder support invite. Replace <code>SUPPORT_URL</code> in the site config with the real server link before launch.</p></div></details>

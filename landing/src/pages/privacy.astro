@@ -27,7 +27,7 @@ import featureData from "../data/features.json";
       <p>The code connects to Discord for bot operation and OAuth sign-in. No other product integration such as analytics, advertising, payments, or an external AI service was found in the audited source. Hosting/network providers may process connection data; deployment-specific details require operator review.</p>
 
       <h2>Permissions and message access</h2>
-      <p>The current invite URL generator requests Administrator permission. The bot enables Server Members and Message Content gateway intents; Presence is disabled by default. The source audit does not identify a public retention policy for the data available through those intents.</p>
+      <p>The invite requests scoped permissions for the audited moderation, role/channel, messaging, and interaction features (permission integer {featureData.verifiedFacts.invitationPermissionInteger}); it excludes Administrator. The bot enables Server Members and Message Content gateway intents; Presence is disabled by default. The source audit does not identify a public retention policy for the data available through those intents.</p>
 
       <h2>Changes and contact</h2>
       <p>The source does not identify a privacy contact address or a user-facing data-request process. Add an operator contact and a verified method to submit requests before publishing this page as a final policy.</p>
