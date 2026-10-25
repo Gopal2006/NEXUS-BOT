@@ -1,13 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@font-face{font-family:"Schibsted Grotesk";src:url("/fonts/schibsted-grotesk-latin-400-normal.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:"Schibsted Grotesk";src:url("/fonts/schibsted-grotesk-latin-500-normal.woff2") format("woff2");font-style:normal;font-weight:500;font-display:swap}
+@font-face{font-family:"Schibsted Grotesk";src:url("/fonts/schibsted-grotesk-latin-600-normal.woff2") format("woff2");font-style:normal;font-weight:600;font-display:swap}
+@font-face{font-family:"Schibsted Grotesk";src:url("/fonts/schibsted-grotesk-latin-700-normal.woff2") format("woff2");font-style:normal;font-weight:700;font-display:swap}
+@font-face{font-family:"JetBrains Mono";src:url("/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:"JetBrains Mono";src:url("/fonts/jetbrains-mono-latin-500-normal.woff2") format("woff2");font-style:normal;font-weight:500;font-display:swap}
 @font-face{font-family:"IBM Plex Sans";src:url("/fonts/ibm-plex-sans-400.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
 @font-face{font-family:"IBM Plex Sans";src:url("/fonts/ibm-plex-sans-500.woff2") format("woff2");font-style:normal;font-weight:500;font-display:swap}
 @font-face{font-family:"IBM Plex Sans";src:url("/fonts/ibm-plex-sans-600.woff2") format("woff2");font-style:normal;font-weight:600;font-display:swap}
 @font-face{font-family:"Barlow Condensed";src:url("/fonts/barlow-condensed-600.woff2") format("woff2");font-style:normal;font-weight:600;font-display:swap}
 @font-face{font-family:"IBM Plex Mono";src:url("/fonts/ibm-plex-mono-400.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
 @font-face{font-family:"IBM Plex Mono";src:url("/fonts/ibm-plex-mono-500.woff2") format("woff2");font-style:normal;font-weight:500;font-display:swap}
-:root{color-scheme:dark;--bg-deep:#111311;--aubergine:#151815;--ice-silver:#f0f0e9;--ink:#171311;--text-muted:#c1c5bc;--text-faint:#989f95;--glass-bg:#1a1e1a;--glass-bg-strong:#222722;--glass-border:#343b34;--glass-border-strong:#465047;--glass-highlight:rgba(255,255,255,.035);--hint:#c97861;--success:#8fc59a;--warning:#e4c176;--error:#e58e82;--bg:var(--bg-deep);--surface:var(--glass-bg);--card:var(--glass-bg);--border:var(--glass-border);--border-strong:var(--glass-border-strong);--text:var(--ice-silver);--accent:#c97861;--accent-ink:#171311;--tint:#222722;--brand-color:#c97861;--font-ui:"IBM Plex Sans",sans-serif;--font-display:"Barlow Condensed",sans-serif;--font-code:"IBM Plex Mono",monospace}
+:root{color-scheme:dark;--bg-deep:#0B0E14;--aubergine:#121722;--ice-silver:#E7EAF0;--ink:#071610;--text-muted:#AAB4C3;--text-faint:#7E899A;--glass-bg:#121722;--glass-bg-strong:#181F2D;--glass-border:#323C4D;--glass-border-strong:#647186;--glass-highlight:rgba(255,255,255,.035);--hint:#3DDBB0;--success:#3DDBB0;--warning:#F5B14C;--error:#F26D6D;--bg:var(--bg-deep);--surface:var(--glass-bg);--card:var(--glass-bg);--border:var(--glass-border);--border-strong:var(--glass-border-strong);--text:var(--ice-silver);--accent:#3DDBB0;--accent-ink:#071610;--tint:#202B3B;--brand-color:#3DDBB0;--font-ui:"Schibsted Grotesk",sans-serif;--font-display:"Schibsted Grotesk",sans-serif;--font-code:"JetBrains Mono",monospace}
 *{box-sizing:border-box}
 html{background:var(--bg-deep);color:var(--ice-silver);font-family:var(--font-ui);font-synthesis:none;text-rendering:optimizeLegibility}
 body{background:var(--bg-deep);color:var(--ice-silver);min-height:100vh;font-family:var(--font-ui)}
@@ -15,19 +21,20 @@ button,input,select,textarea{font:inherit}
 .font-display,h1.page-title{font-family:var(--font-display);font-weight:600;letter-spacing:-.015em}
 .font-sans{font-family:var(--font-ui)}
 .font-mono,code,kbd,.font-mono *{font-family:var(--font-code)}
-::selection{background:#c9786160;color:#fff5ed}
-:focus-visible{outline:2px solid #e19a82;outline-offset:3px}
-::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:#151815}::-webkit-scrollbar-thumb{background:#485047;border-radius:8px}
+::selection{background:#3DDBB060;color:#E7EAF0}
+:focus-visible{outline:2px solid #3DDBB0;outline-offset:3px}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:#0B0E14}::-webkit-scrollbar-thumb{background:#46536A;border-radius:8px}
 .glass,.glass-strong,.glass-soft{background:var(--glass-bg);backdrop-filter:none;-webkit-backdrop-filter:none;border:1px solid var(--glass-border);border-radius:12px;box-shadow:none;position:relative}
 .glass-strong{background:var(--glass-bg-strong);border-color:var(--glass-border-strong)}
-.glass-soft{background:#20241f;border-color:var(--glass-border);border-radius:9px}
-.glass:hover,.glass-soft:hover{border-color:#596257}
+.glass-soft{background:#0E121A;border-color:var(--glass-border);border-radius:9px}
+.glass:hover,.glass-soft:hover{border-color:#647186}
+.glass-soft:focus,.glass-soft:focus-visible{border-color:var(--accent);box-shadow:0 0 0 3px #3DDBB028;outline:0}
 .grain-overlay,.sheen:after{display:none!important}
 .btn-primary{background:var(--accent);color:var(--accent-ink);border:1px solid var(--accent);border-radius:8px;font-weight:600}
-.btn-primary:hover:not(:disabled){background:#d98971;border-color:#d98971;box-shadow:none;transform:translateY(-1px)}
-.btn-secondary{background:#20241f;border:1px solid var(--glass-border-strong);color:var(--ice-silver);border-radius:8px}
-.input-base{background:#151815;border:1px solid var(--glass-border-strong);color:var(--ice-silver);border-radius:8px;backdrop-filter:none}
+.btn-primary:hover:not(:disabled){background:#64E8C2;border-color:#64E8C2;box-shadow:none;transform:translateY(-1px)}
+.btn-secondary{background:#181F2D;border:1px solid var(--glass-border-strong);color:var(--ice-silver);border-radius:8px}
+.input-base{background:#0E121A;border:1px solid var(--glass-border-strong);color:var(--ice-silver);border-radius:8px;backdrop-filter:none}
 .input-base::placeholder{color:var(--text-faint)}
-.input-base:focus{border-color:#c97861;box-shadow:0 0 0 3px #c9786128}
+.input-base:focus{border-color:#3DDBB0;box-shadow:0 0 0 3px #3DDBB028}
 table{border-collapse:collapse}th{color:var(--text-muted)}tr{border-color:var(--glass-border)}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
