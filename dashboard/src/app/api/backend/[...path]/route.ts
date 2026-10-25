@@ -15,14 +15,18 @@ async function handleProxy(
   const userId = (session.user as any).id;
   const subpath = resolvedParams.path.join("/");
   const searchParams = req.nextUrl.search;
-  const apiUrl = process.env.BOT_API_URL || "http://127.0.0.1:8000";
-  const apiKey = process.env.BOT_API_KEY || "";
+  const apiUrl = (process.env.BOT_API_URL || "http://127.0.0.1:8000").trim().replace(/\/+$/, "");
+  const apiKey = (process.env.BOT_API_KEY || "").trim().replace(/^["']|["']$/g, "");
+
+  if (!apiKey) {
+    console.error("[Backend Proxy] BOT_API_KEY is missing or empty in environment variables!");
+  }
 
   const targetUrl = `${apiUrl}/api/v1/${subpath}${searchParams}`;
 
   const headers: Record<string, string> = {
     "X-API-Key": apiKey,
-    "X-User-Id": userId,
+    "X-User-Id": String(userId),
   };
 
   const contentType = req.headers.get("content-type");
@@ -48,6 +52,9 @@ async function handleProxy(
     });
 
     const data = await res.text();
+    if (!res.ok) {
+      console.error(`[Backend Proxy] Backend ${targetUrl} returned status ${res.status}:`, data);
+    }
     return new NextResponse(data, {
       status: res.status,
       headers: {

@@ -31,7 +31,9 @@ export default function ServerPickerPage() {
         setLoading(true);
         const res = await fetch("/api/backend/me/guilds");
         if (!res.ok) {
-          throw new Error(`Failed to retrieve servers (${res.status})`);
+          const errData = await res.json().catch(() => null);
+          const detail = errData?.detail || errData?.error || `Failed to retrieve servers (${res.status})`;
+          throw new Error(detail);
         }
         const data = await res.json();
         setGuilds(data);
