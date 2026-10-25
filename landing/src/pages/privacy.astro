@@ -1,0 +1,38 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import featureData from "../data/features.json";
+---
+<SiteLayout title="NEXUS privacy — draft for review" description="A source-based draft describing data stored by the NEXUS Discord bot and dashboard. Human and legal review required." path="/privacy/">
+  <SiteHeader active="trust" />
+  <main id="main">
+    <header class="page-hero"><div class="container"><p class="eyebrow">Policy draft</p><h1>Privacy, described plainly.</h1><p>What the audited code stores and what it does not document.</p></div></header>
+    <div class="container policy-copy">
+      <div class="policy-banner">Draft: requires human and legal review before publication.</div>
+      <p>This draft reflects a source review of NEXUS based on the source audit. It is not a complete privacy policy and does not establish retention, deletion, or legal commitments that were not found in the code.</p>
+
+      <h2>Data stored by the bot</h2>
+      <p>The bot uses a local SQLite database. Depending on the features enabled in a server, it can store server IDs and configuration; member, user, moderator, and target IDs; moderation case details, warning reasons, and timestamps; mute/timeout state; ticket channel and opener metadata; giveaway configuration and ineligible-notification IDs; poll questions, options, and votes; XP, level, message count and timestamps; AFK reasons; autoresponder triggers and responses; and dashboard configuration changes. Feature records are associated with server IDs where applicable.</p>
+      <p>Command audit messages may include the command text submitted in a prefix message, truncated to {featureData.verifiedFacts.commandTextMaxCharacters} characters, when command auditing is configured.</p>
+
+      <h2>Dashboard information</h2>
+      <p>The Next.js dashboard uses Discord OAuth scopes <code>identify</code> and <code>guilds</code> to identify the user and obtain their server list. Its server-side API checks access to the selected server.</p>
+      <p>A separate aiohttp control center in this repository stores session and audit information including IP address and user-agent. This is distinct from the Next.js dashboard. Operators should confirm whether that control center will be deployed and update this draft accordingly.</p>
+
+      <h2>Retention and deletion</h2>
+      <p>The audited source does not document a general retention period, automated cleanup schedule, data export procedure, or user-wide data deletion process. Some command-specific deletions exist, such as clearing warnings or removing AFK and autoresponder entries. Do not assume those actions erase all related records.</p>
+
+      <h2>Third-party services</h2>
+      <p>The code connects to Discord for bot operation and OAuth sign-in. No other product integration such as analytics, advertising, payments, or an external AI service was found in the audited source. Hosting/network providers may process connection data; deployment-specific details require operator review.</p>
+
+      <h2>Permissions and message access</h2>
+      <p>The current invite URL generator requests Administrator permission. The bot enables Server Members and Message Content gateway intents; Presence is disabled by default. The source audit does not identify a public retention policy for the data available through those intents.</p>
+
+      <h2>Changes and contact</h2>
+      <p>The source does not identify a privacy contact address or a user-facing data-request process. Add an operator contact and a verified method to submit requests before publishing this page as a final policy.</p>
+      <p class="draft-note">This text is an implementation summary, not legal advice or a substitute for a reviewed privacy notice.</p>
+    </div>
+  </main>
+  <SiteFooter />
+</SiteLayout>

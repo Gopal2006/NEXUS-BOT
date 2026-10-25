@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { ArrowRight, AlertCircle, Users, Server, ShieldAlert } from "lucide-react";
-import { BackgroundAurora } from "@/components/BackgroundAurora";
 import { FloatingTopBar } from "@/components/FloatingTopBar";
 import { Skeleton } from "@/components/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -56,8 +55,6 @@ export default function ServerPickerPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-deep)] text-[var(--ice-silver)] font-sans relative overflow-x-hidden">
-      <BackgroundAurora />
-
       {/* Floating Top Bar */}
       <FloatingTopBar />
 
@@ -88,7 +85,7 @@ export default function ServerPickerPage() {
               </Link>
             </div>
           )}
-          <h1 className="font-display font-bold text-3xl sm:text-4xl text-[var(--ice-silver)] tracking-tight mb-2">
+          <h1 className="font-display text-5xl sm:text-6xl text-[var(--ice-silver)] tracking-tight mb-2 leading-[.94]">
             Servers
           </h1>
           <p className="text-xs sm:text-sm text-[var(--text-muted)] font-sans max-w-xl">
@@ -134,10 +131,9 @@ export default function ServerPickerPage() {
               return (
                 <div
                   key={g.id}
-                  className="glass rounded-2xl p-6 flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:border-[var(--ice-silver)]/30 hover:shadow-2xl relative overflow-hidden"
+                  className="glass rounded-xl p-5 sm:p-6 flex flex-col justify-between group transition-colors hover:border-[var(--glass-border-strong)] relative overflow-hidden"
                 >
-                  <div className="sheen" />
-                  <div>
+                                    <div>
                     <div className="flex items-center gap-4 mb-6">
                       {g.icon ? (
                         <img

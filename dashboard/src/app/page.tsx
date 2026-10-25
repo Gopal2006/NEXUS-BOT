@@ -1,303 +1,150 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { signIn, useSession } from "next-auth/react";
-import { ArrowUpRight, ArrowRight } from "lucide-react";
-import { NexusWordmark } from "@/components/NexusLogo";
-import { CustomCursor } from "@/components/CustomCursor";
+import { ArrowRight, ArrowUpRight, ShieldCheck, ListChecks, UsersRound, MessageCircle, Fingerprint } from "lucide-react";
+import { useEffect, useState } from "react";
+import { NexusLogo } from "@/components/NexusLogo";
 
 export default function WelcomePage() {
-  const { data: session, status } = useSession();
-  const lettersRef = useRef<(HTMLSpanElement | null)[]>([]);
-  const [mounted, setMounted] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
-  const [healthStatus, setHealthStatus] = useState<"checking" | "online" | "offline">("checking");
+  const { data: session } = useSession();
+  const [health, setHealth] = useState<"checking" | "online" | "offline">("checking");
 
-  const mouseState = useRef({
-    lastX: 0,
-    lastY: 0,
-    lastTime: 0,
-    velocity: 0,
-    smoothedVelocity: 0,
-    dirX: 0,
-    idleTimeout: 0,
-  });
-
-  // Health check polling for bot/API core status
   useEffect(() => {
-    let isMounted = true;
-
-    async function checkHealth() {
+    let active = true;
+    const check = async () => {
       try {
-        const res = await fetch("/api/health");
-        if (res.ok) {
-          const data = await res.json();
-          if (isMounted) {
-            setHealthStatus(data.status === "online" ? "online" : "checking");
-          }
-        } else {
-          if (isMounted) setHealthStatus("offline");
-        }
+        const response = await fetch("/api/health");
+        const data = await response.json();
+        if (active) setHealth(response.ok && data.status === "online" ? "online" : "offline");
       } catch {
-        if (isMounted) setHealthStatus("offline");
+        if (active) setHealth("offline");
       }
-    }
-
-    checkHealth();
-    const interval = setInterval(checkHealth, 15000);
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
     };
+    check();
+    const timer = window.setInterval(check, 30000);
+    return () => { active = false; window.clearInterval(timer); };
   }, []);
 
-  useEffect(() => {
-    setMounted(true);
-    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(motionQuery.matches);
-
-    const handleMotionChange = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
-    motionQuery.addEventListener("change", handleMotionChange);
-
-    if (motionQuery.matches) {
-      return () => motionQuery.removeEventListener("change", handleMotionChange);
-    }
-
-    let rafId: number;
-
-    const onMouseMove = (e: MouseEvent) => {
-      const now = performance.now();
-      const dt = Math.max(10, now - mouseState.current.lastTime);
-      const dx = e.clientX - mouseState.current.lastX;
-      const dy = e.clientY - mouseState.current.lastY;
-
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const instantVelocity = dist / dt;
-
-      mouseState.current.velocity = instantVelocity;
-      mouseState.current.dirX = dx !== 0 ? Math.sign(dx) : 0;
-      mouseState.current.lastX = e.clientX;
-      mouseState.current.lastY = e.clientY;
-      mouseState.current.lastTime = now;
-      mouseState.current.idleTimeout = now + 90;
-    };
-
-    window.addEventListener("mousemove", onMouseMove, { passive: true });
-
-    const updateMotionBlur = (now: number) => {
-      if (now > mouseState.current.idleTimeout) {
-        mouseState.current.velocity = 0;
-      }
-
-      mouseState.current.smoothedVelocity +=
-        (mouseState.current.velocity - mouseState.current.smoothedVelocity) * 0.18;
-
-      const v = mouseState.current.smoothedVelocity;
-      const blurPx = Math.min(10, v * 3.8);
-      const dir = mouseState.current.dirX;
-
-      lettersRef.current.forEach((el, idx) => {
-        if (!el) return;
-        if (v < 0.02) {
-          el.style.filter = "none";
-          el.style.transform = "none";
-        } else {
-          const offset = dir * Math.min(14, v * 5) * (1 + (idx - 2) * 0.12);
-          el.style.filter = `blur(${blurPx.toFixed(2)}px)`;
-          el.style.transform = `translateX(${offset.toFixed(2)}px)`;
-        }
-      });
-
-      rafId = requestAnimationFrame(updateMotionBlur);
-    };
-
-    rafId = requestAnimationFrame(updateMotionBlur);
-
-    return () => {
-      motionQuery.removeEventListener("change", handleMotionChange);
-      window.removeEventListener("mousemove", onMouseMove);
-      cancelAnimationFrame(rafId);
-    };
-  }, []);
-
-  const word = ["N", "E", "X", "U", "S"];
-
-  const handleLogin = () => {
-    signIn("discord", { callbackUrl: "/dashboard" });
-  };
+  const enter = () => signIn("discord", { callbackUrl: "/dashboard" });
 
   return (
-    <div
-      style={{
-        backgroundColor: "#0B0709",
-        color: "#DDE3E8",
-        ["--bg" as any]: "#0B0709",
-        ["--text" as any]: "#DDE3E8",
-        ["--text-muted" as any]: "rgba(221,227,232,0.60)",
-        ["--text-faint" as any]: "rgba(221,227,232,0.38)",
-        ["--accent" as any]: "#DDE3E8",
-        ["--accent-ink" as any]: "#12040F",
-        ["--border" as any]: "rgba(221,227,232,0.10)",
-        ["--hint" as any]: "#8E6B9A",
-      }}
-      className="relative h-screen max-h-screen w-screen overflow-hidden select-none flex flex-col justify-between p-5 md:p-8 font-sans"
-    >
-      <CustomCursor />
-
-      {/* Faint Film Grain Overlay (3% opacity) */}
-      <div className="grain-overlay fixed inset-0 z-20 pointer-events-none" />
-
-      {/* Subtle Ambient Glow */}
-      <div
-        className={`pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[750px] h-[500px] rounded-full bg-gradient-to-b from-[#8E6B9A]/15 via-transparent to-transparent blur-[140px] z-0 ${reducedMotion ? "" : "animate-pulse"
-          }`}
-        style={{ animationDuration: "8s" }}
-      />
-      <div
-        className="pointer-events-none absolute -bottom-48 right-1/4 w-[600px] h-[500px] rounded-full bg-[#8E6B9A]/10 blur-[150px] z-0"
-      />
-
-      {/* Faint Vertical Column Lines (3-5% opacity) */}
-      <div className="pointer-events-none absolute inset-0 grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 h-full w-full z-0 px-6 md:px-10">
-        {Array.from({ length: 10 }).map((_, i) => (
-          <div
-            key={i}
-            className={`h-full border-r border-[var(--border)] ${i >= 6 ? "hidden sm:block" : ""
-              } ${i >= 8 ? "hidden md:block" : ""}`}
-          />
-        ))}
-      </div>
-
-      {/* Top Bar */}
-      <header
-        className={`relative z-30 flex items-center justify-between shrink-0 transition-all duration-700 ease-out ${mounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
-          }`}
-      >
-        <Link href="/" className="group flex items-center gap-3">
-          <NexusWordmark />
+    <div className="min-h-screen flex flex-col bg-[var(--bg-deep)]">
+      <header className="max-w-[1320px] w-full mx-auto px-5 sm:px-9 py-5 flex items-center justify-between border-b border-[var(--glass-border)]">
+        <Link href="/" className="flex items-center gap-3" aria-label="Nexus home">
+          <span className="w-9 h-9 rounded-lg border border-[var(--glass-border-strong)] bg-[var(--glass-bg)] text-[var(--accent)] flex items-center justify-center"><NexusLogo size={21} /></span>
+          <span className="leading-tight"><strong className="block text-[15px] tracking-[.12em] font-semibold">NEXUS</strong><small className="text-[11px] text-[var(--text-muted)]">Community operations</small></span>
         </Link>
-
-        {/* Real Status Dot & Navigation */}
-        <div className="flex items-center gap-6 md:gap-10 text-[11px] font-semibold tracking-[0.2em] text-[var(--text-muted)] uppercase">
-          {/* Dynamic Core Health Dot */}
-          <div className="flex items-center gap-2">
-            <span
-              className={`w-1.5 h-1.5 rounded-full ${healthStatus === "online"
-                  ? "bg-[var(--success)]"
-                  : healthStatus === "checking"
-                    ? "bg-[var(--warning)] animate-pulse"
-                    : "bg-[var(--error)]"
-                }`}
-            />
-            <span
-              className={`font-mono text-[10px] sm:text-[11px] ${healthStatus === "online"
-                  ? "text-[var(--text)]"
-                  : healthStatus === "checking"
-                    ? "text-[var(--warning)]"
-                    : "text-[var(--error)]"
-                }`}
-            >
-              {healthStatus === "online"
-                ? "CORE ONLINE"
-                : healthStatus === "checking"
-                  ? "CORE CHECKING"
-                  : "CORE OFFLINE"}
-            </span>
-          </div>
-
-          <Link
-            href="/commands"
-            className="hover:text-[var(--text)] transition-colors hidden sm:flex items-center gap-1.5"
-          >
-            <span>COMMANDS</span>
-            <ArrowUpRight className="w-3 h-3 text-[var(--text-muted)] opacity-80" />
-          </Link>
-
-          {status === "authenticated" && (
-            <Link
-              href="/dashboard"
-              className="text-[var(--text)] hover:underline transition-colors"
-            >
-              CONSOLE
-            </Link>
-          )}
-        </div>
+        <nav aria-label="Main navigation" className="flex items-center gap-4 sm:gap-8 text-sm">
+          <Link className="text-[var(--text-muted)] hover:text-[var(--ice-silver)] transition-colors" href="/commands">Command reference <ArrowUpRight className="inline w-3.5 h-3.5" /></Link>
+          {session?.user
+            ? <Link className="text-[var(--ice-silver)] hover:text-[var(--accent)] inline-flex items-center gap-2" href="/dashboard">Open workspace <ArrowRight size={15} /></Link>
+            : <button onClick={enter} className="btn-primary px-3.5 sm:px-4 py-2 text-sm">Sign in</button>}
+        </nav>
       </header>
 
-      {/* Centered Editorial Hero Area */}
-      <main className="relative z-30 flex-1 flex flex-col items-center justify-center my-auto py-4 text-center px-4 min-h-0">
-        <div
-          className={`flex flex-col items-center transition-all duration-1000 ease-out delay-150 ${mounted ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-6 scale-[0.98]"
-            }`}
-        >
-          {/* Subtle category tag */}
-          <div className="mb-2 sm:mb-3 text-[10px] sm:text-[11px] font-mono tracking-[0.3em] uppercase text-[var(--hint)]">
-            PRIVATE CONTROL INTERFACE
+      <main className="flex-1 max-w-[1320px] w-full mx-auto px-5 sm:px-9">
+        <section className="grid lg:grid-cols-[.92fr_1.08fr] gap-10 lg:gap-16 items-center py-14 sm:py-20 lg:py-24">
+          <div className="max-w-[580px]">
+            <div className="flex items-center gap-2 text-[11px] text-[var(--text-muted)] font-mono uppercase tracking-[.1em] mb-6">
+              <span className={`w-2 h-2 rounded-full ${health === "online" ? "bg-[var(--success)]" : health === "checking" ? "bg-[var(--warning)]" : "bg-[var(--error)]"}`} />
+              {health === "online" ? "Bot connected" : health === "checking" ? "Checking bot connection" : "Bot connection unavailable"}
+            </div>
+            <p className="text-[11px] text-[var(--accent)] font-mono uppercase tracking-[.16em] mb-3">A working console for your Discord server</p>
+            <h1 className="font-display text-[clamp(3.3rem,6.8vw,6.6rem)] leading-[.9] tracking-[-.02em] text-[var(--ice-silver)] max-w-[620px]">
+              Keep the<br /><span className="text-[var(--accent)]">community</span><br />in good hands.
+            </h1>
+            <p className="mt-6 max-w-[490px] text-[15px] sm:text-base leading-[1.75] text-[var(--text-muted)]">
+              Nexus gives owners and trusted staff one place to handle moderation, audit trails, member support and everyday server setup.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 mt-8">
+              {session?.user
+                ? <Link href="/dashboard" className="btn-primary px-5 py-3 inline-flex justify-center items-center gap-2.5">Choose a server <ArrowRight size={16} /></Link>
+                : <button onClick={enter} className="btn-primary px-5 py-3 inline-flex justify-center items-center gap-2.5">Continue with Discord <ArrowRight size={16} /></button>}
+              <Link href="/commands" className="btn-secondary px-5 py-3 inline-flex justify-center items-center gap-2">Browse commands <ArrowUpRight size={15} /></Link>
+            </div>
+            <p className="mt-5 text-xs text-[var(--text-faint)]">Server access follows your Discord ownership and configured staff role.</p>
           </div>
 
-          {/* Huge NEXUS Headline with Individual Motion-Blurred Letters */}
-          <h1
-            className="font-display font-black text-6xl sm:text-8xl md:text-9xl lg:text-[10rem] xl:text-[11.5rem] tracking-tighter text-[var(--text)] leading-none mb-2 sm:mb-3 select-none flex items-center justify-center"
-            style={{ letterSpacing: "-0.04em" }}
-          >
-            {word.map((char, index) => (
-              <span
-                key={index}
-                ref={(el) => {
-                  lettersRef.current[index] = el;
-                }}
-                className="inline-block transition-transform duration-75 will-change-transform"
-              >
-                {char}
-              </span>
-            ))}
-          </h1>
-
-          {/* Subtitle */}
-          <p className="text-xs sm:text-sm font-mono tracking-[0.28em] text-[var(--text-muted)] uppercase mb-6 sm:mb-8">
-            YOUR CONTROL CENTER
-          </p>
-
-          {/* Minimal Circular Arrow Pill Button */}
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            {status === "authenticated" ? (
-              <Link
-                href="/dashboard"
-                className="group relative inline-flex items-center gap-4 px-8 py-3.5 rounded-full bg-[var(--accent)] text-[var(--accent-ink)] hover:bg-white transition-all duration-200 shadow-lg cursor-pointer"
-              >
-                <span className="text-xs font-semibold tracking-[0.2em] uppercase font-mono">
-                  Enter Dashboard
-                </span>
-                <div className="w-7 h-7 rounded-full border border-current flex items-center justify-center transition-transform duration-200 group-hover:translate-x-1">
-                  <ArrowRight className="w-3.5 h-3.5" />
+          <div className="lg:pl-4">
+            <div className="border border-[var(--glass-border-strong)] rounded-xl bg-[var(--glass-bg)] overflow-hidden">
+              <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[var(--glass-border)]">
+                <span className="text-[11px] font-mono uppercase tracking-[.12em] text-[var(--text-muted)]">Command → server structure</span>
+                <span className="text-[10px] font-mono text-[var(--success)]">REAL WORKFLOW</span>
+              </div>
+              <div className="p-5 sm:p-7">
+                <div className="flex items-start gap-4">
+                  <span className="mt-0.5 text-[var(--accent)]"><ListChecks size={20} /></span>
+                  <div className="min-w-0">
+                    <p className="text-xs text-[var(--text-muted)]">ONE-STEP AUDIT SETUP</p>
+                    <h2 className="font-display text-3xl sm:text-4xl mt-1">Route the important events.</h2>
+                    <p className="text-sm leading-relaxed text-[var(--text-muted)] mt-2 max-w-[540px]">The implemented <code className="text-[var(--ice-silver)] font-mono text-[13px]">/setupbot</code> command creates a private Nexus Logs category with four purpose-specific channels.</p>
+                  </div>
                 </div>
-              </Link>
-            ) : (
-              <button
-                type="button"
-                onClick={handleLogin}
-                className="group relative inline-flex items-center gap-4 px-8 py-3.5 rounded-full bg-[var(--accent)] text-[var(--accent-ink)] hover:bg-white transition-all duration-200 shadow-lg cursor-pointer"
-              >
-                <span className="text-xs font-semibold tracking-[0.2em] uppercase font-mono">
-                  Login with Discord
-                </span>
-                <div className="w-7 h-7 rounded-full border border-current flex items-center justify-center transition-transform duration-200 group-hover:translate-x-1">
-                  <ArrowRight className="w-3.5 h-3.5" />
+                <div className="mt-6 rounded-lg border border-[var(--glass-border)] bg-[var(--bg-deep)] overflow-hidden">
+                  <div className="px-4 py-3 border-b border-[var(--glass-border)] flex items-center gap-2.5"><span className="w-2 h-2 rounded-full bg-[var(--success)]" /><span className="text-xs">Discord server</span><span className="text-xs text-[var(--text-faint)]">/</span><span className="text-xs text-[var(--text-muted)]">NEXUS LOGS</span></div>
+                  <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-[var(--glass-border)]">
+                    <div className="p-4 space-y-3">
+                      <p className="text-[10px] font-mono tracking-[.12em] uppercase text-[var(--text-faint)]">Moderation & server</p>
+                      <div className="flex items-center gap-2.5 text-sm"><ShieldCheck size={14} className="text-[var(--accent)]" /><code className="font-mono text-[13px]">#mod-logs</code></div>
+                      <div className="flex items-center gap-2.5 text-sm"><ListChecks size={14} className="text-[var(--accent)]" /><code className="font-mono text-[13px]">#server-logs</code></div>
+                    </div>
+                    <div className="p-4 space-y-3">
+                      <p className="text-[10px] font-mono tracking-[.12em] uppercase text-[var(--text-faint)]">Staff & commands</p>
+                      <div className="flex items-center gap-2.5 text-sm"><UsersRound size={14} className="text-[var(--accent)]" /><code className="font-mono text-[13px]">#activity-logs</code></div>
+                      <div className="flex items-center gap-2.5 text-sm"><MessageCircle size={14} className="text-[var(--accent)]" /><code className="font-mono text-[13px]">#cmd-logs</code></div>
+                    </div>
+                  </div>
                 </div>
-              </button>
-            )}
+                <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[var(--text-muted)]">
+                  <span className="inline-flex items-center gap-1.5"><Fingerprint size={13} className="text-[var(--accent)]" /> Owner controlled</span>
+                  <span>Private channels</span>
+                  <span>Recorded to server settings</span>
+                </div>
+              </div>
+              <div className="px-5 py-3 border-t border-[var(--glass-border)] bg-[var(--glass-bg-strong)] flex justify-between items-center">
+                <code className="font-mono text-[13px] text-[var(--ice-silver)]">/setupbot</code>
+                <Link href="/commands?cmd=setupbot" className="text-xs text-[var(--text-muted)] hover:text-[var(--ice-silver)] inline-flex items-center gap-1.5">Read command details <ArrowRight size={13} /></Link>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
+
+        <section className="grid md:grid-cols-[.8fr_1.2fr] gap-6 lg:gap-12 py-8 sm:py-10 border-t border-[var(--glass-border)]">
+          <div>
+            <p className="text-[11px] font-mono uppercase tracking-[.14em] text-[var(--accent)]">A clear operating model</p>
+            <h2 className="font-display text-3xl sm:text-4xl mt-2">The right tool for the right role.</h2>
+          </div>
+          <div className="divide-y divide-[var(--glass-border)]">
+            <div className="grid grid-cols-[28px_1fr] gap-3 py-3 first:pt-0"><span className="font-mono text-xs text-[var(--accent)]">01</span><p className="text-sm leading-relaxed text-[var(--text-muted)]"><strong className="text-[var(--ice-silver)] font-medium">Owners</strong> set the access boundary and choose which staff role can manage Nexus.</p></div>
+            <div className="grid grid-cols-[28px_1fr] gap-3 py-3"><span className="font-mono text-xs text-[var(--accent)]">02</span><p className="text-sm leading-relaxed text-[var(--text-muted)]"><strong className="text-[var(--ice-silver)] font-medium">Moderators</strong> handle cases, logs and member workflows in the server they are authorized to manage.</p></div>
+            <div className="grid grid-cols-[28px_1fr] gap-3 py-3"><span className="font-mono text-xs text-[var(--accent)]">03</span><p className="text-sm leading-relaxed text-[var(--text-muted)]"><strong className="text-[var(--ice-silver)] font-medium">Product operators</strong> use a separate restricted console for Nexus-level administration.</p></div>
+          </div>
+        </section>
+
+        <section className="grid sm:grid-cols-3 gap-0 border-t border-[var(--glass-border)] py-7 sm:py-9">
+          <Link href="/commands" className="group py-4 sm:pr-7 sm:border-r border-[var(--glass-border)]">
+            <span className="text-[11px] font-mono text-[var(--text-faint)]">REFERENCE</span>
+            <span className="mt-2 flex items-center justify-between"><strong className="font-display text-2xl group-hover:text-[var(--accent)]">Command directory</strong><ArrowUpRight size={16} className="text-[var(--text-muted)]" /></span>
+            <span className="block text-sm text-[var(--text-muted)] mt-1">Find syntax, permissions and examples.</span>
+          </Link>
+          <div className="py-4 sm:px-7 sm:border-r border-[var(--glass-border)]">
+            <span className="text-[11px] font-mono text-[var(--text-faint)]">MEMBER CARE</span>
+            <strong className="block font-display text-2xl mt-2">Support & onboarding</strong>
+            <span className="block text-sm text-[var(--text-muted)] mt-1">Tickets, welcome messages and automatic roles.</span>
+          </div>
+          <div className="py-4 sm:pl-7">
+            <span className="text-[11px] font-mono text-[var(--text-faint)]">PARTICIPATION</span>
+            <strong className="block font-display text-2xl mt-2">Healthy engagement</strong>
+            <span className="block text-sm text-[var(--text-muted)] mt-1">Polls, giveaways, leveling and custom replies.</span>
+          </div>
+        </section>
       </main>
 
-      {/* Bottom Bar / Metadata with guaranteed no-overlap padding */}
-      <footer
-        className={`relative z-30 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] font-mono tracking-[0.2em] text-[var(--text-faint)] uppercase pt-3 border-t border-[var(--border)] shrink-0 transition-all duration-700 ease-out delay-300 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-          }`}
-      >
-        <div>SYSTEM 2.0 • CONTROL PANEL</div>
-        <div>SECURE DISCORD PROTOCOL</div>
+      <footer className="border-t border-[var(--glass-border)]">
+        <div className="max-w-[1320px] mx-auto px-5 sm:px-9 py-4 flex flex-col sm:flex-row gap-2 justify-between text-xs text-[var(--text-faint)]">
+          <span>NEXUS · Discord community operations</span><span>Access is checked against Discord and server settings.</span>
+        </div>
       </footer>
     </div>
   );

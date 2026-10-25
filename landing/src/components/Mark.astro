@@ -1,0 +1,6 @@
+---
+const { small = false } = Astro.props;
+---
+<a class:list={["wordmark", { "wordmark-small": small }]} href="/" aria-label="NEXUS home">
+  <span class="wordmark-text">NEXUS</span><span class="wordmark-node" aria-hidden="true"></span>
+</a>

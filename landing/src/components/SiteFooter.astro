@@ -1,0 +1,25 @@
+---
+import Mark from "./Mark.astro";
+import { CONTACT_EMAIL, GITHUB_URL, SUPPORT_URL, isTodo } from "../config";
+---
+<footer class="site-footer">
+  <div class="container footer-top">
+    <div class="footer-brand">
+      <Mark small />
+      <p>Moderation, member support, and server setup with the decisions made visible.</p>
+    </div>
+    <div class="footer-links">
+      <div><span class="footer-label">Product</span><a href="/commands/">Commands</a><a href="/#dashboard">Dashboard</a><a href="/#trust">Trust</a></div>
+      <div><span class="footer-label">Policies</span><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></div>
+      <div><span class="footer-label">Contact</span>
+        {isTodo(SUPPORT_URL) ? <span class="muted">Support link not set</span> : <a href={SUPPORT_URL} target="_blank" rel="noreferrer">Support server</a>}
+        {!isTodo(GITHUB_URL) && <a href={GITHUB_URL} target="_blank" rel="noreferrer">GitHub</a>}
+        {isTodo(CONTACT_EMAIL) ? <span class="muted">Contact email not set</span> : <a href={"mailto:" + CONTACT_EMAIL}>{CONTACT_EMAIL}</a>}
+      </div>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>© {new Date().getFullYear()} NEXUS</span>
+    <span>Not affiliated with Discord Inc.</span>
+  </div>
+</footer>

@@ -6,8 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, ShieldCheck, AlertCircle, Loader2 } from "lucide-react";
 import { NexusLogo } from "@/components/NexusLogo";
-import { BackgroundAurora } from "@/components/BackgroundAurora";
-import { CustomCursor } from "@/components/CustomCursor";
 
 function LoginContent() {
   const { data: session, status } = useSession();
@@ -60,7 +58,7 @@ function LoginContent() {
 
   if ((status === "loading" || status === "authenticated") && !errorParam && !sessionTimeout) {
     return (
-      <div className="glass-strong rounded-2xl p-10 max-w-md w-full text-center space-y-4 shadow-2xl relative z-10">
+      <div className="glass-strong rounded-xl p-8 max-w-md w-full text-center space-y-4">
         <Loader2 className="w-8 h-8 text-[var(--ice-silver)] animate-spin mx-auto" />
         <h2 className="text-base font-semibold tracking-wide text-[var(--ice-silver)]">
           AUTHENTICATING SESSION
@@ -73,11 +71,11 @@ function LoginContent() {
   }
 
   return (
-    <div className="glass-strong rounded-2xl p-8 sm:p-10 max-w-md w-full text-center shadow-2xl relative overflow-hidden z-10">
+    <div className="glass-strong rounded-xl p-7 sm:p-9 max-w-md w-full text-center relative">
       <div className="sheen" />
 
       {/* Geometric Logo */}
-      <div className="w-12 h-12 rounded-2xl glass-soft border border-[var(--glass-border)] mx-auto flex items-center justify-center text-[var(--ice-silver)] mb-6 shadow-sm">
+      <div className="w-11 h-11 rounded-lg glass-soft border border-[var(--glass-border)] mx-auto flex items-center justify-center text-[var(--accent)] mb-5">
         <NexusLogo size={24} />
       </div>
 
@@ -85,7 +83,7 @@ function LoginContent() {
         NEXUS DASHBOARD
       </div>
 
-      <h1 className="font-display font-bold text-2xl text-[var(--ice-silver)] tracking-tight mb-2">
+      <h1 className="font-display text-4xl text-[var(--ice-silver)] tracking-tight mb-2">
         Sign in to NEXUS
       </h1>
       <p className="text-xs text-[var(--text-muted)] font-sans leading-relaxed mb-8">
@@ -110,7 +108,7 @@ function LoginContent() {
           signIn("discord", { callbackUrl });
         }}
         disabled={isSigningIn}
-        className="w-full py-3.5 px-6 rounded-xl bg-[var(--ice-silver)] hover:opacity-90 text-[var(--ink)] font-mono text-xs font-bold tracking-[0.18em] uppercase transition-all duration-300 shadow-lg shadow-[var(--ice-silver)]/10 flex items-center justify-center gap-3 cursor-pointer group disabled:opacity-50"
+        className="w-full min-h-12 py-3 px-6 rounded-lg bg-[var(--accent)] hover:brightness-110 text-[var(--accent-ink)] font-sans text-sm font-semibold transition-colors flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50"
       >
         {isSigningIn ? (
           <>
@@ -152,9 +150,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-[var(--bg-deep)] text-[var(--ice-silver)] flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
-      <BackgroundAurora />
-      <CustomCursor />
+    <div className="min-h-screen bg-[var(--bg-deep)] text-[var(--ice-silver)] flex flex-col items-center justify-center p-4 font-sans">
       <Suspense
         fallback={
           <div className="glass-strong rounded-2xl p-10 max-w-md w-full text-center space-y-4">

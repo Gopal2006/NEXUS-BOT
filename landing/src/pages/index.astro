@@ -1,0 +1,248 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import AddButton from "../components/AddButton.astro";
+import SupportButton from "../components/SupportButton.astro";
+import CommandCatalog from "../components/CommandCatalog.astro";
+import LineIcon from "../components/LineIcon.astro";
+import commandData from "../data/commands.json";
+import featureData from "../data/features.json";
+import { SITE_NAME, SITE_URL, DASHBOARD_URL, isTodo } from "../config";
+
+const allCommands = commandData.commands;
+const referenceCommands = allCommands.filter((command) => command.visibility === "public-reference");
+const showcaseCommands = referenceCommands.filter((command) =>
+  ["/set-botrole", "/ban", "/ticket setup", "/rank", "/giveaway", "/autorole", "/setupbot", "/announce", "/autoresponder", "/tictactoe", "/poll"].some((name) => command.command.startsWith(name)),
+);
+const dashboardModules = ["Overview", "General", "Welcome", "Moderation", "Audit log", "Tickets", "Polls", "Giveaways", "Leveling", "Autorole", "Reaction roles", "Announcements", "Direct messages", "Autoresponder"];
+const dashboardTodo = isTodo(DASHBOARD_URL);
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: SITE_NAME,
+  applicationCategory: "CommunicationApplication",
+  operatingSystem: "Discord",
+  description: "Discord server moderation, support tickets, member leveling, giveaways, polls, and a web dashboard.",
+  url: SITE_URL,
+};
+---
+<SiteLayout
+  title="NEXUS — Moderation, support, and leveling. One bot."
+  description="Practical Discord server moderation, private support tickets, member leveling, and a verified web dashboard in one bot."
+  path="/"
+>
+  <SiteHeader />
+  <main id="main">
+    <section class="hero" id="hero" aria-labelledby="hero-title">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Discord server operations</p>
+          <h1 id="hero-title">Moderation, support, and leveling. <span class="accent">One bot.</span></h1>
+          <p class="hero-subhead">Handle staff actions with case history, give members a private way to ask for help, and reward activity from the same bot.</p>
+          <div class="hero-actions">
+            <AddButton />
+            <a class="button button-secondary" href="/commands/">View commands
+              <svg aria-hidden="true" viewBox="0 0 20 20" width="16" height="16" fill="none"><path d="M4 10h11M10 5l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </a>
+          </div>
+          <p class="hero-note">Slash commands and <code>n!</code> prefix commands. Server owners choose who can manage the bot.</p>
+          <span class="invite-reminder">Invite link not configured yet</span>
+        </div>
+        <div class="hero-chat-shell" aria-label="Illustration of a NEXUS ticket and moderation flow">
+          <div class="chat-top">
+            <div class="chat-room"><span class="room-hash">#</span> staff-ops</div>
+            <div class="chat-live"><i aria-hidden="true"></i> sample flow</div>
+          </div>
+          <div class="chat-body">
+            <p class="chat-caption">Illustration · sample command flow</p>
+            <div class="chat-message" style="--delay:0s">
+              <span class="chat-avatar chat-avatar-user">AD</span>
+              <div class="chat-message-content"><div class="chat-author">Admin <span class="chat-time">now</span></div><p class="chat-text"><code>/ticket setup</code> channel: <code>#support</code></p></div>
+            </div>
+            <div class="chat-message" style="--delay:1.3s">
+              <span class="chat-avatar">NX</span>
+              <div class="chat-message-content"><div class="chat-author">NEXUS <span class="chat-time">APP</span></div><div class="chat-embed"><p class="chat-embed-title">Ticket panel sent</p><p>Members can open a private support ticket from the panel.</p></div></div>
+            </div>
+            <div class="chat-message" style="--delay:2.6s">
+              <span class="chat-avatar chat-avatar-user">MB</span>
+              <div class="chat-message-content"><div class="chat-author">Member <span class="chat-time">now</span></div><p class="chat-text">Opened a ticket from <code>#support</code>.</p></div>
+            </div>
+            <div class="chat-message" style="--delay:3.9s">
+              <span class="chat-avatar">NX</span>
+              <div class="chat-message-content"><div class="chat-author">NEXUS <span class="chat-time">APP</span></div><div class="chat-embed"><p class="chat-embed-title">Ticket created</p><p>Your support ticket has been opened. A staff member will assist you shortly.</p></div></div>
+            </div>
+            <div class="chat-message" style="--delay:5.2s">
+              <span class="chat-avatar chat-avatar-danger">AD</span>
+              <div class="chat-message-content"><div class="chat-author">Moderator <span class="chat-time">now</span></div><p class="chat-text"><code>/ban</code> member: @Member reason: repeated spam</p></div>
+            </div>
+            <div class="chat-message" style="--delay:6.5s">
+              <span class="chat-avatar">NX</span>
+              <div class="chat-message-content"><div class="chat-author">NEXUS <span class="chat-time">APP</span></div><div class="chat-embed"><p class="chat-embed-title">Member banned</p><div class="chat-embed-grid"><span>CASE ID<strong>#sample</strong></span><span>MODERATOR<strong>@Moderator</strong></span><span>REASON<strong>Repeated spam</strong></span><span>PRUNED<strong>As requested</strong></span><span>DM STATUS<strong>Notified · sample</strong></span></div></div></div>
+            </div>
+          </div>
+          <div class="chat-foot">
+            <svg aria-hidden="true" viewBox="0 0 20 20" width="15" height="15" fill="none"><path d="m4 10 4 4 8-8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            <span>Responses illustrated from implemented flows</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="fact-strip" aria-label="What's in the box">
+      <div class="container fact-grid">
+        <div class="fact-item"><span class="fact-value">{referenceCommands.length}</span><span class="fact-label">documented command entries</span></div>
+        <div class="fact-item"><span class="fact-value">{featureData.features.length}</span><span class="fact-label">verified feature areas</span></div>
+        <div class="fact-item"><span class="fact-value">Web dashboard</span><span class="fact-label">Discord OAuth and server picker</span></div>
+        <div class="fact-item"><span class="fact-value fact-mono">/ · n!</span><span class="fact-label">slash and prefix commands</span></div>
+      </div>
+    </section>
+
+    <section class="section" id="features" aria-labelledby="features-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <div><span class="section-kicker">What's in the box</span><h2 class="section-title" id="features-title">The server tools you actually need.</h2></div>
+          <p>Each module maps to commands and behavior in the current bot code. No extras implied.</p>
+        </div>
+        <div class="feature-grid">
+          {featureData.features.map((feature) => (
+            <article class="feature-card reveal">
+              <div class="feature-heading"><span class="feature-icon"><LineIcon name={feature.icon} /></span><h3>{feature.name}</h3></div>
+              <p>{feature.description}</p>
+              <code class="feature-snippet">{feature.command}</code>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section commands-section" id="commands" aria-labelledby="commands-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <div><span class="section-kicker">Command reference</span><h2 id="commands-title">Know what a command can do.</h2></div>
+          <p>Search the documented command set. Every entry shows who can use it before you open the details.</p>
+        </div>
+        <div class="catalog-frame reveal">
+          <CommandCatalog commands={showcaseCommands} mode="home" />
+        </div>
+        <div style="margin-top:22px"><a class="text-link" href="/commands/">Browse the full command reference <span aria-hidden="true">→</span></a></div>
+      </div>
+    </section>
+
+    <section class="section how-section" id="setup" aria-labelledby="setup-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <div><span class="section-kicker">Quick start</span><h2 id="setup-title">A clear path from invite to setup.</h2></div>
+          <p>Start with the log channels, then point NEXUS at the parts of your server it should manage.</p>
+        </div>
+        <div class="steps">
+          <article class="step reveal"><span class="step-number" aria-hidden="true"></span><h3>Invite NEXUS</h3><p>Review the permissions before adding the bot to your server.</p><AddButton compact /></article>
+          <article class="step reveal"><span class="step-number" aria-hidden="true"></span><h3>Create the log channels</h3><p><code>/setupbot</code> creates a private category and {featureData.verifiedFacts.logChannelCount} channels for moderation, server, activity, and command logs.</p></article>
+          <article class="step reveal"><span class="step-number" aria-hidden="true"></span><h3>Set your server rules</h3><p>Use the dashboard or configure welcome, log, and ticket channels with commands.</p><a href="/commands/" class="text-link">See <code>/set-welcome</code> and <code>/ticket setup</code> <span aria-hidden="true">→</span></a></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section dashboard-section" id="dashboard" aria-labelledby="dashboard-title">
+      <div class="container dashboard-showcase">
+        <div class="dashboard-copy reveal">
+          <span class="section-kicker">Web dashboard</span>
+          <h2 id="dashboard-title">Configure the server you selected.</h2>
+          <p>Sign in with Discord, select an authorized server, then open its settings modules. This interface is an illustration of the Next.js dashboard; it is not a live account.</p>
+          <ul class="dashboard-list">
+            {dashboardModules.map((module) => <li><svg aria-hidden="true" viewBox="0 0 20 20" fill="none"><path d="m4 10 4 4 8-8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>{module}</li>)}
+          </ul>
+          {dashboardTodo ? <a class="button button-secondary button-compact dashboard-url-todo" href="#dashboard-preview" data-todo="dashboard">Dashboard URL not configured</a> : <a class="button button-secondary button-compact dashboard-url-todo" href={DASHBOARD_URL} target="_blank" rel="noreferrer">Open dashboard</a> }
+        </div>
+        <div class="dashboard-illustration reveal" id="dashboard-preview" aria-label="Illustration of the NEXUS Next.js dashboard server settings">
+          <span class="illustration-label">Illustration</span>
+          <div class="fake-dashboard">
+            <aside class="fake-sidebar">
+              <div class="fake-dash-brand"><span class="brand-mark-mini">N</span>NEXUS</div>
+              <div class="fake-server"><i class="fake-server-dot"></i>Choose a server</div>
+              <p class="fake-nav-label">Server settings</p>
+              <div class="fake-nav-item">Overview</div><div class="fake-nav-item active">General</div><div class="fake-nav-item">Welcome</div><div class="fake-nav-item">Moderation</div><div class="fake-nav-item">Tickets</div><div class="fake-nav-item">Leveling</div><div class="fake-nav-item">Audit log</div>
+            </aside>
+            <div class="fake-main">
+              <div class="fake-topline"><span class="fake-title">General settings</span><span class="fake-oauth">DISCORD OAUTH</span></div>
+              <h3 class="fake-section-title">Management access</h3>
+              <p class="fake-section-desc">Choose which server role can manage NEXUS settings.</p>
+              <div class="fake-control"><span><strong>Bot management role</strong><small>Server owner or selected role</small></span><span class="fake-select">Choose role</span></div>
+              <div class="fake-control"><span><strong>Welcome channel</strong><small>Where new-member messages are sent</small></span><span class="fake-select">Choose channel</span></div>
+              <div class="fake-control"><span><strong>Moderation log channel</strong><small>Destination for moderation records</small></span><span class="fake-select">Choose channel</span></div>
+              <span class="fake-save">Save settings</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section trust-section" id="trust" aria-labelledby="trust-title">
+      <div class="container trust-grid">
+        <div class="trust-copy reveal">
+          <span class="section-kicker">Access and data</span>
+          <h2 id="trust-title">Know what access means.</h2>
+          <p>The current invite requests Administrator. Review that before authorizing NEXUS.</p>
+          <div class="admin-warning">
+            <strong><span aria-hidden="true">!</span> Administrator permission requested</strong>
+            <p>The bot invite is generated with permission integer <code>{featureData.verifiedFacts.invitationPermissionInteger}</code>, which grants Administrator. The code does not document a narrower rationale or least-privilege bitfield.</p>
+          </div>
+        </div>
+        <div class="trust-details">
+          <article class="trust-panel reveal">
+            <h3>What NEXUS uses server access for</h3>
+            <ul class="trust-list">
+              <li><svg viewBox="0 0 20 20" fill="none"><path d="m4 10 4 4 8-8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg><span>Moderation actions such as kick, ban, timeout, message cleanup, and channel lockdowns.</span></li>
+              <li><svg viewBox="0 0 20 20" fill="none"><path d="m4 10 4 4 8-8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg><span>Role and channel management for staff controls, autoroles, reaction roles, and private ticket channels.</span></li>
+              <li><svg viewBox="0 0 20 20" fill="none"><path d="m4 10 4 4 8-8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg><span>Creating and writing to the log channels selected during setup.</span></li>
+            </ul>
+            <p style="margin-top:14px">Server owners can review the invite permissions and use a dedicated NEXUS management role for the bot's staff checks. A custom role does not override Administrator while that permission remains granted.</p>
+          </article>
+          <article class="trust-panel reveal">
+            <h3>Gateway intents, in plain words</h3>
+            <ul class="trust-list">
+              <li><svg viewBox="0 0 20 20" fill="none"><path d="m4 10 4 4 8-8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg><span><strong>Server Members</strong> supports join/leave messages, autorole, and member-aware commands.</span></li>
+              <li><svg viewBox="0 0 20 20" fill="none"><path d="m4 10 4 4 8-8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg><span><strong>Message Content</strong> supports prefix commands, AFK, autoresponders, XP, and message audit behavior.</span></li>
+              <li><svg viewBox="0 0 20 20" fill="none"><path d="m4 10 4 4 8-8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg><span><strong>Presence</strong> is off by default and can be enabled in configuration.</span></li>
+            </ul>
+          </article>
+          <article class="trust-panel reveal">
+            <h3>Data NEXUS stores</h3>
+            <p>Local SQLite data can include server configuration, user and moderator IDs, moderation reasons and cases, warning and timeout state, ticket metadata, poll questions/options/votes, XP and message counts, AFK reasons, autoresponder text, and dashboard configuration audit records.</p>
+            <div class="trust-note">Command audit logs can include command message text, truncated to {featureData.verifiedFacts.commandTextMaxCharacters} characters. The audited code contains no general retention schedule or user-data deletion process. The separate aiohttp control center stores session IP address and user-agent. See the <a class="text-link" href="/privacy/">privacy draft</a>.</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="faq" aria-labelledby="faq-title">
+      <div class="container faq-grid">
+        <div class="reveal">
+          <span class="section-kicker">FAQ</span>
+          <h2 id="faq-title">Questions worth asking.</h2>
+          <p style="margin-top:16px">Answers are based on the current source audit. Missing public links are called out as missing.</p>
+        </div>
+        <div class="faq-list">
+          <details class="faq-item"><summary>Why does NEXUS ask for Administrator?</summary><div class="faq-answer"><p>The current invite generator uses permission integer {featureData.verifiedFacts.invitationPermissionInteger}, which is Administrator. The source does not document why that broad permission was chosen. Review the permission screen before authorizing the bot.</p></div></details>
+          <details class="faq-item"><summary>What data does NEXUS store?</summary><div class="faq-answer"><p>SQLite stores server settings and feature records such as moderation cases, warnings, ticket metadata, poll data, XP, and configured responses. Command audit text may include up to {featureData.verifiedFacts.commandTextMaxCharacters} characters of the command message. There is no general retention or deletion process documented in the audited code. <a href="/privacy/">Read the privacy draft.</a></p></div></details>
+          <details class="faq-item"><summary>Who can run management commands?</summary><div class="faq-answer"><p>Public commands are available to server members. Staff commands are restricted to the server owner, the configured Bot-Role, bot owners, or the non-prefix allowlist as implemented. Some settings are server-owner-only; each command shows its tier in the <a href="/commands/">reference</a>.</p></div></details>
+          <details class="faq-item"><summary>Do slash and prefix commands both work?</summary><div class="faq-answer"><p>Yes. Slash commands are registered with Discord. Normal prefix commands use <code>n!</code>; empty-prefix access is restricted to bot owners and allowlisted users. Not every slash command has a prefix counterpart.</p></div></details>
+          <details class="faq-item"><summary>Is there a web dashboard?</summary><div class="faq-answer"><p>Yes. The Next.js dashboard uses Discord OAuth, a server picker, and modules for settings, moderation, tickets, leveling, and other audited features. The public dashboard URL is not configured here.</p></div></details>
+          <details class="faq-item"><summary>How do I set up the log channels?</summary><div class="faq-answer"><p>Run <code>/setupbot</code> with the required server access. It creates a private NEXUS LOGS category and four log channels, then stores their IDs.</p></div></details>
+          <details class="faq-item"><summary>Are there paid plans?</summary><div class="faq-answer"><p>No paid-tier or payment logic was found in the current code. The operator should confirm this before it is treated as a public pricing promise.</p></div></details>
+          <details class="faq-item"><summary>Where can I get support?</summary><div class="faq-answer"><p>The repository currently has a placeholder support invite. Replace <code>SUPPORT_URL</code> in the site config with the real server link before launch.</p></div></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="final-cta" aria-labelledby="final-cta-title">
+      <div class="container final-cta-inner">
+        <div><span class="section-kicker">Set up with intention</span><h2 id="final-cta-title">Your server. Your access rules.</h2><p>Review permissions, then choose the tools your team will use.</p></div>
+        <div class="final-actions"><AddButton /><SupportButton secondary /></div>
+      </div>
+    </section>
+    <nav class="mobile-cta" aria-label="Quick invite" aria-hidden="true"><AddButton compact /></nav>
+  </main>
+  <SiteFooter />
+  <script type="application/ld+json" set:html={JSON.stringify(structuredData)}></script>
+</SiteLayout>
