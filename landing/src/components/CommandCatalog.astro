@@ -1,0 +1,65 @@
+---
+type CommandEntry = { category: string; tier: string; command: string; spellings: string[]; description: string; arguments: string[]; argumentNotes: string; example: string; };
+const { commands, mode = "home" } = Astro.props as { commands: CommandEntry[]; mode?: string };
+const categories = [...new Set(commands.map((command) => command.category))];
+---
+<div class:list={["command-catalog", { "command-catalog-home": mode === "home" }]} data-command-catalog>
+  <div class="catalog-controls">
+    <label class="search-field">
+      <span class="sr-only">Search commands</span>
+      <svg aria-hidden="true" viewBox="0 0 20 20" width="18" height="18" fill="none"><circle cx="8.8" cy="8.8" r="5.6" stroke="currentColor" stroke-width="1.5" /><path d="m13 13 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" /></svg>
+      <input type="search" placeholder="Search by command or task…" data-command-search autocomplete="off" />
+      <kbd>/</kbd>
+    </label>
+    <label class="filter-select">
+      <span class="sr-only">Filter by who can use this command</span>
+      <select data-tier-filter>
+        <option value="all">Anyone can use</option>
+        <option value="Public">Public</option>
+        <option value="Staff">Staff</option>
+        <option value="Owner">Server owner</option>
+      </select>
+      <svg aria-hidden="true" viewBox="0 0 20 20" width="16" height="16" fill="none"><path d="m5 7 5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    </label>
+  </div>
+  <div class="category-tabs" role="tablist" aria-label="Command categories">
+    <button class="category-tab is-selected" type="button" role="tab" aria-selected="true" data-category="all">All</button>
+    {categories.map((category) => (
+      <button class="category-tab" type="button" role="tab" aria-selected="false" data-category={category}>{category}</button>
+    ))}
+  </div>
+  <p class="catalog-count" data-command-count aria-live="polite"></p>
+  <div class="command-results" data-command-results>
+    {commands.map((command) => (
+      <article class="command-row" data-command-row data-category={command.category} data-tier={command.tier} data-search={(command.command + " " + command.spellings.join(" ") + " " + command.description + " " + command.arguments.join(" ")).toLowerCase()}>
+        <div class="command-row-main">
+          <div class="command-row-copy">
+            <code class="command-name">{command.command}</code>
+            <p>{command.description}</p>
+          </div>
+          <div class="command-row-actions">
+            <span class:list={["tier-pill", "tier-" + command.tier.toLowerCase().replace(" / ", "-").replaceAll(" ", "-")]}>{command.tier}</span>
+            <button class="copy-button" type="button" data-copy-command={command.command} aria-label={"Copy " + command.command}>
+              <svg aria-hidden="true" viewBox="0 0 20 20" width="17" height="17" fill="none"><rect x="7" y="7" width="9" height="10" rx="1.5" stroke="currentColor" stroke-width="1.4" /><path d="M13 7V4.8A1.8 1.8 0 0 0 11.2 3H4.8A1.8 1.8 0 0 0 3 4.8v6.4A1.8 1.8 0 0 0 4.8 13H7" stroke="currentColor" stroke-width="1.4" /></svg>
+              <span>Copy</span>
+            </button>
+          </div>
+        </div>
+        <details class="command-details">
+          <summary aria-label={"Show arguments and example for " + command.command}><span>Arguments & example</span><span aria-hidden="true">⌄</span></summary>
+          <div class="command-detail-panel">
+            <p class="detail-label">Accepted spellings</p>
+            <div class="spellings">{command.spellings.map((spelling) => <code>{spelling}</code>)}</div>
+            <p class="detail-label">Arguments</p>
+            <p>{command.argumentNotes === "none" ? "No arguments." : command.argumentNotes}</p>
+            <p class="detail-label">Illustrative input · replace the sample values</p>
+            <code class="example-code">{command.example}</code>
+          </div>
+        </details>
+      </article>
+    ))}
+  </div>
+  <div class="empty-results" data-empty-results hidden>
+    <strong>No matching commands.</strong><span>Try another word, category, or access level.</span>
+  </div>
+</div>

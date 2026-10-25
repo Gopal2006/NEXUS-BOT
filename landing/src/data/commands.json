@@ -1,0 +1,2099 @@
+{
+  "source": "FEATURES.md",
+  "generatedAtBuild": true,
+  "commands": [
+    {
+      "id": "setup-1",
+      "category": "Setup",
+      "name": "/set-botrole",
+      "command": "/set-botrole",
+      "spellings": [
+        "/set-botrole"
+      ],
+      "slash": [
+        "/set-botrole"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "role"
+      ],
+      "argumentNotes": "required role",
+      "tier": "Owner",
+      "description": "Assigns the role that grants staff-level Nexus management.",
+      "example": "/set-botrole role:@Staff",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "setup-2",
+      "category": "Setup",
+      "name": "/remove-botrole",
+      "command": "/remove-botrole",
+      "spellings": [
+        "/remove-botrole"
+      ],
+      "slash": [
+        "/remove-botrole"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Owner",
+      "description": "Removes the configured Bot-Role.",
+      "example": "/remove-botrole",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "setup-3",
+      "category": "Setup",
+      "name": "/set-ticketrole",
+      "command": "/set-ticketrole",
+      "spellings": [
+        "/set-ticketrole"
+      ],
+      "slash": [
+        "/set-ticketrole"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "role"
+      ],
+      "argumentNotes": "required role",
+      "tier": "Owner",
+      "description": "Sets the ticket support role.",
+      "example": "/set-ticketrole role:@Staff",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "setup-4",
+      "category": "Setup",
+      "name": "/remove-ticketrole",
+      "command": "/remove-ticketrole",
+      "spellings": [
+        "/remove-ticketrole"
+      ],
+      "slash": [
+        "/remove-ticketrole"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Owner",
+      "description": "Removes the ticket support role.",
+      "example": "/remove-ticketrole",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "setup-5",
+      "category": "Setup",
+      "name": "/set-welcome",
+      "command": "/set-welcome",
+      "spellings": [
+        "/set-welcome"
+      ],
+      "slash": [
+        "/set-welcome"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "channel",
+        "message"
+      ],
+      "argumentNotes": "required channel; optional message",
+      "tier": "Staff",
+      "description": "Sets a welcome channel/template.",
+      "example": "/set-welcome channel:#channel message:\"Example message\"",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "setup-6",
+      "category": "Setup",
+      "name": "/set-leave",
+      "command": "/set-leave",
+      "spellings": [
+        "/set-leave"
+      ],
+      "slash": [
+        "/set-leave"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "channel",
+        "message"
+      ],
+      "argumentNotes": "required channel; optional message",
+      "tier": "Staff",
+      "description": "Sets a member-departure channel/template.",
+      "example": "/set-leave channel:#channel message:\"Example message\"",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "setup-7",
+      "category": "Setup",
+      "name": "/set-log",
+      "command": "/set-log",
+      "spellings": [
+        "/set-log"
+      ],
+      "slash": [
+        "/set-log"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "channel"
+      ],
+      "argumentNotes": "required channel",
+      "tier": "Staff",
+      "description": "Sets the moderation log channel.",
+      "example": "/set-log channel:#channel",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "setup-8",
+      "category": "Setup",
+      "name": "/set-cmdlog",
+      "command": "/set-cmdlog",
+      "spellings": [
+        "/set-cmdlog"
+      ],
+      "slash": [
+        "/set-cmdlog"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "channel"
+      ],
+      "argumentNotes": "required channel",
+      "tier": "Staff",
+      "description": "Sets the prefix/no-prefix command audit channel.",
+      "example": "/set-cmdlog channel:#channel",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "setup-9",
+      "category": "Setup",
+      "name": "/config",
+      "command": "/config",
+      "spellings": [
+        "/config"
+      ],
+      "slash": [
+        "/config"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Staff",
+      "description": "Displays configured server roles and channels.",
+      "example": "/config",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "setup-10",
+      "category": "Setup",
+      "name": "/setupbot",
+      "command": "/setupbot",
+      "spellings": [
+        "/setupbot"
+      ],
+      "slash": [
+        "/setupbot"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Staff",
+      "description": "Creates a private NEXUS LOGS category and four log channels, then saves their IDs.",
+      "example": "/setupbot",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "setup-11",
+      "category": "Setup",
+      "name": "/set-status",
+      "command": "/set-status",
+      "spellings": [
+        "/set-status"
+      ],
+      "slash": [
+        "/set-status"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "status"
+      ],
+      "argumentNotes": "status, activity type, activity text",
+      "tier": "Staff",
+      "description": "Changes bot presence/activity.",
+      "example": "/set-status status:enabled",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-12",
+      "category": "Moderation",
+      "name": "/kick",
+      "command": "/kick",
+      "spellings": [
+        "/kick",
+        "n!kick"
+      ],
+      "slash": [
+        "/kick"
+      ],
+      "prefix": [
+        "n!kick"
+      ],
+      "aliases": [],
+      "arguments": [
+        "member",
+        "reason"
+      ],
+      "argumentNotes": "member; slash reason required (prefix reason is accepted after member)",
+      "tier": "Staff",
+      "description": "Kicks a member and records a moderation case.",
+      "example": "/kick member:@member reason:\"Example reason\"",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-13",
+      "category": "Moderation",
+      "name": "/ban",
+      "command": "/ban",
+      "spellings": [
+        "/ban",
+        "n!ban"
+      ],
+      "slash": [
+        "/ban"
+      ],
+      "prefix": [
+        "n!ban"
+      ],
+      "aliases": [],
+      "arguments": [
+        "member",
+        "reason"
+      ],
+      "argumentNotes": "member, reason; slash optional delete-days",
+      "tier": "Staff",
+      "description": "Bans a member; slash option can delete recent message history; records a case.",
+      "example": "/ban member:@member reason:\"Example reason\"",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-14",
+      "category": "Moderation",
+      "name": "/softban",
+      "command": "/softban",
+      "spellings": [
+        "/softban",
+        "n!softban"
+      ],
+      "slash": [
+        "/softban"
+      ],
+      "prefix": [
+        "n!softban"
+      ],
+      "aliases": [],
+      "arguments": [
+        "member",
+        "reason"
+      ],
+      "argumentNotes": "member, reason",
+      "tier": "Staff",
+      "description": "Bans then immediately unbans to remove recent messages; records a case.",
+      "example": "/softban member:@member reason:\"Example reason\"",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-15",
+      "category": "Moderation",
+      "name": "/unban",
+      "command": "/unban",
+      "spellings": [
+        "/unban",
+        "n!unban"
+      ],
+      "slash": [
+        "/unban"
+      ],
+      "prefix": [
+        "n!unban"
+      ],
+      "aliases": [],
+      "arguments": [
+        "reason",
+        "user"
+      ],
+      "argumentNotes": "user ID; optional reason",
+      "tier": "Staff",
+      "description": "Removes a user ban.",
+      "example": "/unban reason:\"Example reason\" user:@member",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-16",
+      "category": "Moderation",
+      "name": "/mute",
+      "command": "/mute",
+      "spellings": [
+        "/mute",
+        "n!mute",
+        "timeout"
+      ],
+      "slash": [
+        "/mute"
+      ],
+      "prefix": [
+        "n!mute"
+      ],
+      "aliases": [
+        "timeout"
+      ],
+      "arguments": [
+        "member",
+        "reason",
+        "duration"
+      ],
+      "argumentNotes": "member, duration, optional reason",
+      "tier": "Staff",
+      "description": "Times a member out; timeout expiration is persisted and restored by the bot.",
+      "example": "/mute member:@member reason:\"Example reason\" duration:10m",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-17",
+      "category": "Moderation",
+      "name": "/unmute",
+      "command": "/unmute",
+      "spellings": [
+        "/unmute",
+        "n!unmute",
+        "untimeout"
+      ],
+      "slash": [
+        "/unmute"
+      ],
+      "prefix": [
+        "n!unmute"
+      ],
+      "aliases": [
+        "untimeout"
+      ],
+      "arguments": [
+        "member",
+        "reason"
+      ],
+      "argumentNotes": "member; optional reason",
+      "tier": "Staff",
+      "description": "Removes a member timeout.",
+      "example": "/unmute member:@member reason:\"Example reason\"",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-18",
+      "category": "Moderation",
+      "name": "/warn",
+      "command": "/warn",
+      "spellings": [
+        "/warn",
+        "n!warn"
+      ],
+      "slash": [
+        "/warn"
+      ],
+      "prefix": [
+        "n!warn"
+      ],
+      "aliases": [],
+      "arguments": [
+        "member",
+        "reason"
+      ],
+      "argumentNotes": "member, reason",
+      "tier": "Staff",
+      "description": "Stores a warning and reports it to the user.",
+      "example": "/warn member:@member reason:\"Example reason\"",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-19",
+      "category": "Moderation",
+      "name": "/warnings",
+      "command": "/warnings",
+      "spellings": [
+        "/warnings",
+        "n!warnings",
+        "warns",
+        "modlogs"
+      ],
+      "slash": [
+        "/warnings"
+      ],
+      "prefix": [
+        "n!warnings"
+      ],
+      "aliases": [
+        "warns",
+        "modlogs"
+      ],
+      "arguments": [
+        "member"
+      ],
+      "argumentNotes": "member",
+      "tier": "Staff",
+      "description": "Displays stored warning history.",
+      "example": "/warnings member:@member",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-20",
+      "category": "Moderation",
+      "name": "/clearwarns",
+      "command": "/clearwarns",
+      "spellings": [
+        "/clearwarns"
+      ],
+      "slash": [
+        "/clearwarns"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "member"
+      ],
+      "argumentNotes": "member",
+      "tier": "Staff",
+      "description": "Deletes stored warnings for a member. Prefix counterpart not found.",
+      "example": "/clearwarns member:@member",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-21",
+      "category": "Moderation",
+      "name": "/modlogs",
+      "command": "/modlogs",
+      "spellings": [
+        "/modlogs"
+      ],
+      "slash": [
+        "/modlogs"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "member"
+      ],
+      "argumentNotes": "member",
+      "tier": "Staff",
+      "description": "Displays moderation case history. Prefix spelling is an alias of n!warnings.",
+      "example": "/modlogs member:@member",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-22",
+      "category": "Moderation",
+      "name": "/lockdown",
+      "command": "/lockdown",
+      "spellings": [
+        "/lockdown",
+        "n!lockdown"
+      ],
+      "slash": [
+        "/lockdown"
+      ],
+      "prefix": [
+        "n!lockdown"
+      ],
+      "aliases": [],
+      "arguments": [
+        "reason",
+        "scope"
+      ],
+      "argumentNotes": "optional scope/reason",
+      "tier": "Owner",
+      "description": "Applies a server-wide or scoped messaging lockdown.",
+      "example": "/lockdown reason:\"Example reason\" scope:all",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-23",
+      "category": "Moderation",
+      "name": "/unlockdown",
+      "command": "/unlockdown",
+      "spellings": [
+        "/unlockdown",
+        "n!unlockdown"
+      ],
+      "slash": [
+        "/unlockdown"
+      ],
+      "prefix": [
+        "n!unlockdown"
+      ],
+      "aliases": [],
+      "arguments": [
+        "scope"
+      ],
+      "argumentNotes": "optional scope",
+      "tier": "Owner",
+      "description": "Lifts the lockdown.",
+      "example": "/unlockdown scope:all",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-24",
+      "category": "Moderation",
+      "name": "/hide",
+      "command": "/hide",
+      "spellings": [
+        "/hide",
+        "n!hide"
+      ],
+      "slash": [
+        "/hide"
+      ],
+      "prefix": [
+        "n!hide"
+      ],
+      "aliases": [],
+      "arguments": [
+        "channel"
+      ],
+      "argumentNotes": "optional channel",
+      "tier": "Staff",
+      "description": "Hides a channel from @everyone.",
+      "example": "/hide channel:#channel",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-25",
+      "category": "Moderation",
+      "name": "/unhide",
+      "command": "/unhide",
+      "spellings": [
+        "/unhide",
+        "n!unhide"
+      ],
+      "slash": [
+        "/unhide"
+      ],
+      "prefix": [
+        "n!unhide"
+      ],
+      "aliases": [],
+      "arguments": [
+        "channel"
+      ],
+      "argumentNotes": "optional channel",
+      "tier": "Staff",
+      "description": "Restores @everyone channel visibility.",
+      "example": "/unhide channel:#channel",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-26",
+      "category": "Moderation",
+      "name": "/nick",
+      "command": "/nick",
+      "spellings": [
+        "/nick",
+        "n!nick",
+        "nickname"
+      ],
+      "slash": [
+        "/nick"
+      ],
+      "prefix": [
+        "n!nick"
+      ],
+      "aliases": [
+        "nickname"
+      ],
+      "arguments": [
+        "nickname",
+        "member"
+      ],
+      "argumentNotes": "member; optional nickname",
+      "tier": "Staff",
+      "description": "Changes or clears a nickname.",
+      "example": "/nick nickname:<nickname> member:@member",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-27",
+      "category": "Moderation",
+      "name": "/role add",
+      "command": "/role add",
+      "spellings": [
+        "/role add",
+        "n!role add"
+      ],
+      "slash": [
+        "/role add"
+      ],
+      "prefix": [
+        "n!role add"
+      ],
+      "aliases": [],
+      "arguments": [
+        "member",
+        "role"
+      ],
+      "argumentNotes": "member, role",
+      "tier": "Staff",
+      "description": "Assigns a role, subject to role hierarchy.",
+      "example": "/role add member:@member role:@Staff",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-28",
+      "category": "Moderation",
+      "name": "/role remove",
+      "command": "/role remove",
+      "spellings": [
+        "/role remove",
+        "n!role remove"
+      ],
+      "slash": [
+        "/role remove"
+      ],
+      "prefix": [
+        "n!role remove"
+      ],
+      "aliases": [],
+      "arguments": [
+        "member",
+        "role"
+      ],
+      "argumentNotes": "member, role",
+      "tier": "Staff",
+      "description": "Removes a role, subject to role hierarchy.",
+      "example": "/role remove member:@member role:@Staff",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-29",
+      "category": "Moderation",
+      "name": "/purge",
+      "command": "/purge",
+      "spellings": [
+        "/purge",
+        "n!purge"
+      ],
+      "slash": [
+        "/purge"
+      ],
+      "prefix": [
+        "n!purge"
+      ],
+      "aliases": [],
+      "arguments": [
+        "member",
+        "amount"
+      ],
+      "argumentNotes": "amount; slash optional member filter",
+      "tier": "Staff",
+      "description": "Deletes recent messages in the current channel.",
+      "example": "/purge member:@member amount:5",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-30",
+      "category": "Moderation",
+      "name": "/slowmode",
+      "command": "/slowmode",
+      "spellings": [
+        "/slowmode",
+        "n!slowmode"
+      ],
+      "slash": [
+        "/slowmode"
+      ],
+      "prefix": [
+        "n!slowmode"
+      ],
+      "aliases": [],
+      "arguments": [
+        "seconds",
+        "channel"
+      ],
+      "argumentNotes": "seconds; optional channel",
+      "tier": "Staff",
+      "description": "Sets channel message cooldown.",
+      "example": "/slowmode seconds:10 channel:#channel",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-31",
+      "category": "Moderation",
+      "name": "/lock",
+      "command": "/lock",
+      "spellings": [
+        "/lock",
+        "n!lock"
+      ],
+      "slash": [
+        "/lock"
+      ],
+      "prefix": [
+        "n!lock"
+      ],
+      "aliases": [],
+      "arguments": [
+        "reason",
+        "channel"
+      ],
+      "argumentNotes": "optional channel/reason",
+      "tier": "Staff",
+      "description": "Disables @everyone message sending in a channel.",
+      "example": "/lock reason:\"Example reason\" channel:#channel",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "moderation-32",
+      "category": "Moderation",
+      "name": "/unlock",
+      "command": "/unlock",
+      "spellings": [
+        "/unlock",
+        "n!unlock"
+      ],
+      "slash": [
+        "/unlock"
+      ],
+      "prefix": [
+        "n!unlock"
+      ],
+      "aliases": [],
+      "arguments": [
+        "channel"
+      ],
+      "argumentNotes": "optional channel",
+      "tier": "Staff",
+      "description": "Restores channel sending permissions.",
+      "example": "/unlock channel:#channel",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "member-management-33",
+      "category": "Member management",
+      "name": "/autorole set-human",
+      "command": "/autorole set-human",
+      "spellings": [
+        "/autorole set-human"
+      ],
+      "slash": [
+        "/autorole set-human"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "role"
+      ],
+      "argumentNotes": "role",
+      "tier": "Staff",
+      "description": "Sets a role to assign automatically to new human members.",
+      "example": "/autorole set-human role:@Staff",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "member-management-34",
+      "category": "Member management",
+      "name": "/autorole view",
+      "command": "/autorole view",
+      "spellings": [
+        "/autorole view"
+      ],
+      "slash": [
+        "/autorole view"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Staff",
+      "description": "Shows autorole configuration.",
+      "example": "/autorole view",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "member-management-35",
+      "category": "Member management",
+      "name": "/autorole clear",
+      "command": "/autorole clear",
+      "spellings": [
+        "/autorole clear"
+      ],
+      "slash": [
+        "/autorole clear"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Staff",
+      "description": "Clears autorole configuration.",
+      "example": "/autorole clear",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "member-management-36",
+      "category": "Member management",
+      "name": "n!autorole",
+      "command": "n!autorole",
+      "spellings": [
+        "n!autorole"
+      ],
+      "slash": [],
+      "prefix": [
+        "n!autorole"
+      ],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Staff",
+      "description": "Prefix group entry/help for autorole.",
+      "example": "n!autorole",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "member-management-37",
+      "category": "Member management",
+      "name": "n!autorole set",
+      "command": "n!autorole set",
+      "spellings": [
+        "n!autorole set"
+      ],
+      "slash": [],
+      "prefix": [
+        "n!autorole set"
+      ],
+      "aliases": [],
+      "arguments": [
+        "role"
+      ],
+      "argumentNotes": "role",
+      "tier": "Staff",
+      "description": "Prefix autorole setup.",
+      "example": "n!autorole set role:@Staff",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "member-management-38",
+      "category": "Member management",
+      "name": "n!autorole clear",
+      "command": "n!autorole clear",
+      "spellings": [
+        "n!autorole clear"
+      ],
+      "slash": [],
+      "prefix": [
+        "n!autorole clear"
+      ],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Staff",
+      "description": "Clears prefix autorole setup.",
+      "example": "n!autorole clear",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "member-management-39",
+      "category": "Member management",
+      "name": "/reactionrole panel",
+      "command": "/reactionrole panel",
+      "spellings": [
+        "/reactionrole panel"
+      ],
+      "slash": [
+        "/reactionrole panel"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "channel",
+        "role",
+        "title",
+        "description"
+      ],
+      "argumentNotes": "title, description, up to five role slots, channel",
+      "tier": "Staff",
+      "description": "Creates a button panel through which members can self-assign configured roles.",
+      "example": "/reactionrole panel channel:#channel role:@Staff title:\"Support\" description:\"Open a ticket\"",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "member-management-40",
+      "category": "Member management",
+      "name": "n!reactionrole",
+      "command": "n!reactionrole",
+      "spellings": [
+        "n!reactionrole",
+        "rr"
+      ],
+      "slash": [],
+      "prefix": [
+        "n!reactionrole"
+      ],
+      "aliases": [
+        "rr"
+      ],
+      "arguments": [
+        "role"
+      ],
+      "argumentNotes": "role; optional label",
+      "tier": "Staff",
+      "description": "Prefix reaction-role helper.",
+      "example": "n!reactionrole role:@Staff",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "engagement-41",
+      "category": "Engagement",
+      "name": "/rank",
+      "command": "/rank",
+      "spellings": [
+        "/rank",
+        "n!rank"
+      ],
+      "slash": [
+        "/rank"
+      ],
+      "prefix": [
+        "n!rank"
+      ],
+      "aliases": [],
+      "arguments": [
+        "member"
+      ],
+      "argumentNotes": "optional member",
+      "tier": "Public",
+      "description": "Shows a member’s level, XP, and progress.",
+      "example": "/rank member:@member",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "engagement-42",
+      "category": "Engagement",
+      "name": "/leaderboard",
+      "command": "/leaderboard",
+      "spellings": [
+        "/leaderboard",
+        "n!leaderboard",
+        "lb",
+        "top"
+      ],
+      "slash": [
+        "/leaderboard"
+      ],
+      "prefix": [
+        "n!leaderboard"
+      ],
+      "aliases": [
+        "lb",
+        "top"
+      ],
+      "arguments": [
+        "page"
+      ],
+      "argumentNotes": "optional page",
+      "tier": "Public",
+      "description": "Shows the server XP leaderboard.",
+      "example": "/leaderboard page:1",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "engagement-43",
+      "category": "Engagement",
+      "name": "/leveling toggle",
+      "command": "/leveling toggle",
+      "spellings": [
+        "/leveling toggle"
+      ],
+      "slash": [
+        "/leveling toggle"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "status"
+      ],
+      "argumentNotes": "status",
+      "tier": "Staff",
+      "description": "Enables or disables XP tracking.",
+      "example": "/leveling toggle status:enabled",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "engagement-44",
+      "category": "Engagement",
+      "name": "/leveling reward",
+      "command": "/leveling reward",
+      "spellings": [
+        "/leveling reward"
+      ],
+      "slash": [
+        "/leveling reward"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "role",
+        "action",
+        "level"
+      ],
+      "argumentNotes": "action, level, role",
+      "tier": "Staff",
+      "description": "Adds or removes a milestone role reward.",
+      "example": "/leveling reward role:@Staff action:add level:5",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "engagement-45",
+      "category": "Engagement",
+      "name": "/leveling settings",
+      "command": "/leveling settings",
+      "spellings": [
+        "/leveling settings"
+      ],
+      "slash": [
+        "/leveling settings"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Staff",
+      "description": "Displays leveling configuration.",
+      "example": "/leveling settings",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "engagement-46",
+      "category": "Engagement",
+      "name": "/afk",
+      "command": "/afk",
+      "spellings": [
+        "/afk",
+        "n!afk"
+      ],
+      "slash": [
+        "/afk"
+      ],
+      "prefix": [
+        "n!afk"
+      ],
+      "aliases": [],
+      "arguments": [
+        "reason"
+      ],
+      "argumentNotes": "optional reason (default “AFK”)",
+      "tier": "Public",
+      "description": "Sets AFK status.",
+      "example": "/afk reason:\"Example reason\"",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "engagement-47",
+      "category": "Engagement",
+      "name": "/autoresponder add",
+      "command": "/autoresponder add",
+      "spellings": [
+        "/autoresponder add"
+      ],
+      "slash": [
+        "/autoresponder add"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "trigger",
+        "response"
+      ],
+      "argumentNotes": "trigger, response, match type",
+      "tier": "Staff",
+      "description": "Adds an exact/contains/wildcard trigger response (actual supported values should be taken from the option declaration).",
+      "example": "/autoresponder add trigger:hello response:\"Hello there\"",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "engagement-48",
+      "category": "Engagement",
+      "name": "/autoresponder remove",
+      "command": "/autoresponder remove",
+      "spellings": [
+        "/autoresponder remove"
+      ],
+      "slash": [
+        "/autoresponder remove"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "trigger"
+      ],
+      "argumentNotes": "trigger",
+      "tier": "Staff",
+      "description": "Removes an autoresponder.",
+      "example": "/autoresponder remove trigger:hello",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "engagement-49",
+      "category": "Engagement",
+      "name": "/autoresponder list",
+      "command": "/autoresponder list",
+      "spellings": [
+        "/autoresponder list"
+      ],
+      "slash": [
+        "/autoresponder list"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Staff",
+      "description": "Lists autoresponders.",
+      "example": "/autoresponder list",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "engagement-50",
+      "category": "Engagement",
+      "name": "n!autoresponder",
+      "command": "n!autoresponder",
+      "spellings": [
+        "n!autoresponder",
+        "ar"
+      ],
+      "slash": [],
+      "prefix": [
+        "n!autoresponder"
+      ],
+      "aliases": [
+        "ar"
+      ],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Staff",
+      "description": "Prefix group entry/help.",
+      "example": "n!autoresponder",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "engagement-51",
+      "category": "Engagement",
+      "name": "n!autoresponder add",
+      "command": "n!autoresponder add",
+      "spellings": [
+        "n!autoresponder add"
+      ],
+      "slash": [],
+      "prefix": [
+        "n!autoresponder add"
+      ],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "free-text content",
+      "tier": "Staff",
+      "description": "Adds a prefix autoresponder.",
+      "example": "n!autoresponder add",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "engagement-52",
+      "category": "Engagement",
+      "name": "n!autoresponder remove",
+      "command": "n!autoresponder remove",
+      "spellings": [
+        "n!autoresponder remove",
+        "del",
+        "rm"
+      ],
+      "slash": [],
+      "prefix": [
+        "n!autoresponder remove"
+      ],
+      "aliases": [
+        "del",
+        "rm"
+      ],
+      "arguments": [
+        "trigger"
+      ],
+      "argumentNotes": "trigger",
+      "tier": "Staff",
+      "description": "Removes a prefix autoresponder.",
+      "example": "n!autoresponder remove trigger:hello",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "games-53",
+      "category": "Games",
+      "name": "/tictactoe",
+      "command": "/tictactoe",
+      "spellings": [
+        "/tictactoe",
+        "n!tictactoe",
+        "ttt"
+      ],
+      "slash": [
+        "/tictactoe"
+      ],
+      "prefix": [
+        "n!tictactoe"
+      ],
+      "aliases": [
+        "ttt"
+      ],
+      "arguments": [
+        "opponent"
+      ],
+      "argumentNotes": "required opponent",
+      "tier": "Public",
+      "description": "Starts a turn-based 3×3 game with button interaction.",
+      "example": "/tictactoe opponent:@member",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "games-54",
+      "category": "Games",
+      "name": "/rps",
+      "command": "/rps",
+      "spellings": [
+        "/rps",
+        "n!rps"
+      ],
+      "slash": [
+        "/rps"
+      ],
+      "prefix": [
+        "n!rps"
+      ],
+      "aliases": [],
+      "arguments": [
+        "opponent"
+      ],
+      "argumentNotes": "optional opponent",
+      "tier": "Public",
+      "description": "Plays Rock-Paper-Scissors against the bot or another member.",
+      "example": "/rps opponent:@member",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "games-55",
+      "category": "Games",
+      "name": "/guess",
+      "command": "/guess",
+      "spellings": [
+        "/guess",
+        "n!guess",
+        "numberguess"
+      ],
+      "slash": [
+        "/guess"
+      ],
+      "prefix": [
+        "n!guess"
+      ],
+      "aliases": [
+        "numberguess"
+      ],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Public",
+      "description": "Starts a number-guessing game from 1 to 100.",
+      "example": "/guess",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "giveaways-56",
+      "category": "Giveaways",
+      "name": "/giveaway start",
+      "command": "/giveaway start",
+      "spellings": [
+        "/giveaway start"
+      ],
+      "slash": [
+        "/giveaway start"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "channel",
+        "role"
+      ],
+      "argumentNotes": "channel; optional role; modal collects giveaway details",
+      "tier": "Staff",
+      "description": "Starts a giveaway with persistent entry state and optional role eligibility.",
+      "example": "/giveaway start channel:#channel role:@Staff",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "giveaways-57",
+      "category": "Giveaways",
+      "name": "/giveaway end",
+      "command": "/giveaway end",
+      "spellings": [
+        "/giveaway end"
+      ],
+      "slash": [
+        "/giveaway end"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "message"
+      ],
+      "argumentNotes": "message ID",
+      "tier": "Staff",
+      "description": "Ends an active giveaway.",
+      "example": "/giveaway end message:\"Example message\"",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "giveaways-58",
+      "category": "Giveaways",
+      "name": "/giveaway reroll",
+      "command": "/giveaway reroll",
+      "spellings": [
+        "/giveaway reroll"
+      ],
+      "slash": [
+        "/giveaway reroll"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "message"
+      ],
+      "argumentNotes": "message ID, winner count",
+      "tier": "Staff",
+      "description": "Selects replacement winner(s).",
+      "example": "/giveaway reroll message:\"Example message\"",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "giveaways-59",
+      "category": "Giveaways",
+      "name": "/giveaway list",
+      "command": "/giveaway list",
+      "spellings": [
+        "/giveaway list"
+      ],
+      "slash": [
+        "/giveaway list"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Staff",
+      "description": "Lists active giveaways in this server.",
+      "example": "/giveaway list",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "polls-60",
+      "category": "Polls",
+      "name": "/poll",
+      "command": "/poll",
+      "spellings": [
+        "/poll"
+      ],
+      "slash": [
+        "/poll"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "channel",
+        "role"
+      ],
+      "argumentNotes": "optional channel and role; modal collects question/options",
+      "tier": "Staff",
+      "description": "Creates a button poll with optional role restriction.",
+      "example": "/poll channel:#channel role:@Staff",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "polls-61",
+      "category": "Polls",
+      "name": "/endpoll",
+      "command": "/endpoll",
+      "spellings": [
+        "/endpoll"
+      ],
+      "slash": [
+        "/endpoll"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "message"
+      ],
+      "argumentNotes": "message ID",
+      "tier": "Staff",
+      "description": "Closes a poll and reports results.",
+      "example": "/endpoll message:\"Example message\"",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "tickets-62",
+      "category": "Tickets",
+      "name": "/ticket setup",
+      "command": "/ticket setup",
+      "spellings": [
+        "/ticket setup"
+      ],
+      "slash": [
+        "/ticket setup"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "channel",
+        "title",
+        "description",
+        "color"
+      ],
+      "argumentNotes": "channel; optional title, description, color",
+      "tier": "Staff",
+      "description": "Posts an interactive ticket-opening panel.",
+      "example": "/ticket setup channel:#channel title:\"Support\" description:\"Open a ticket\" color:#5865F2",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "tickets-63",
+      "category": "Tickets",
+      "name": "/ticket set-role",
+      "command": "/ticket set-role",
+      "spellings": [
+        "/ticket set-role"
+      ],
+      "slash": [
+        "/ticket set-role"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "role"
+      ],
+      "argumentNotes": "role",
+      "tier": "Owner",
+      "description": "Sets the support-staff role.",
+      "example": "/ticket set-role role:@Staff",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "tickets-64",
+      "category": "Tickets",
+      "name": "/ticket remove-role",
+      "command": "/ticket remove-role",
+      "spellings": [
+        "/ticket remove-role"
+      ],
+      "slash": [
+        "/ticket remove-role"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Owner",
+      "description": "Removes the support-staff role.",
+      "example": "/ticket remove-role",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "tickets-65",
+      "category": "Tickets",
+      "name": "/ticket close",
+      "command": "/ticket close",
+      "spellings": [
+        "/ticket close"
+      ],
+      "slash": [
+        "/ticket close"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Staff / owner",
+      "description": "Closes an active ticket and produces a transcript.",
+      "example": "/ticket close",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "tickets-66",
+      "category": "Tickets",
+      "name": "/ticket add",
+      "command": "/ticket add",
+      "spellings": [
+        "/ticket add"
+      ],
+      "slash": [
+        "/ticket add"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "member"
+      ],
+      "argumentNotes": "member",
+      "tier": "Staff",
+      "description": "Grants a member access to the current ticket.",
+      "example": "/ticket add member:@member",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "tickets-67",
+      "category": "Tickets",
+      "name": "/ticket remove",
+      "command": "/ticket remove",
+      "spellings": [
+        "/ticket remove"
+      ],
+      "slash": [
+        "/ticket remove"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "member"
+      ],
+      "argumentNotes": "member",
+      "tier": "Staff",
+      "description": "Removes a member’s access to the current ticket.",
+      "example": "/ticket remove member:@member",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "tickets-68",
+      "category": "Tickets",
+      "name": "n!ticket",
+      "command": "n!ticket",
+      "spellings": [
+        "n!ticket"
+      ],
+      "slash": [],
+      "prefix": [
+        "n!ticket"
+      ],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Staff",
+      "description": "Prefix group entry/help.",
+      "example": "n!ticket",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "tickets-69",
+      "category": "Tickets",
+      "name": "n!ticket close",
+      "command": "n!ticket close",
+      "spellings": [
+        "n!ticket close"
+      ],
+      "slash": [],
+      "prefix": [
+        "n!ticket close"
+      ],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Staff / owner",
+      "description": "Prefix ticket closure.",
+      "example": "n!ticket close",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "tickets-70",
+      "category": "Tickets",
+      "name": "n!ticket add",
+      "command": "n!ticket add",
+      "spellings": [
+        "n!ticket add"
+      ],
+      "slash": [],
+      "prefix": [
+        "n!ticket add"
+      ],
+      "aliases": [],
+      "arguments": [
+        "member"
+      ],
+      "argumentNotes": "member",
+      "tier": "Public",
+      "description": "Adds member to ticket.",
+      "example": "n!ticket add member:@member",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "tickets-71",
+      "category": "Tickets",
+      "name": "n!ticket remove",
+      "command": "n!ticket remove",
+      "spellings": [
+        "n!ticket remove"
+      ],
+      "slash": [],
+      "prefix": [
+        "n!ticket remove"
+      ],
+      "aliases": [],
+      "arguments": [
+        "member"
+      ],
+      "argumentNotes": "member",
+      "tier": "Public",
+      "description": "Removes member from ticket.",
+      "example": "n!ticket remove member:@member",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "communication-72",
+      "category": "Communication",
+      "name": "/announce",
+      "command": "/announce",
+      "spellings": [
+        "/announce"
+      ],
+      "slash": [
+        "/announce"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "thumbnail",
+        "channel",
+        "embed",
+        "ping",
+        "image"
+      ],
+      "argumentNotes": "channel; optional embed/ping/image/thumbnail options; interactive modal",
+      "tier": "Staff",
+      "description": "Composes and publishes a text or embed announcement.",
+      "example": "/announce thumbnail:THUMBNAIL_URL channel:#channel embed:true ping:false image:IMAGE_URL",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "communication-73",
+      "category": "Communication",
+      "name": "/dm-user",
+      "command": "/dm-user",
+      "spellings": [
+        "/dm-user",
+        "/dm"
+      ],
+      "slash": [
+        "/dm-user",
+        "/dm"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "member"
+      ],
+      "argumentNotes": "member; modal collects content",
+      "tier": "Staff",
+      "description": "Sends a direct message to one member and logs delivery outcome.",
+      "example": "/dm-user member:@member",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "communication-74",
+      "category": "Communication",
+      "name": "/dm-role",
+      "command": "/dm-role",
+      "spellings": [
+        "/dm-role"
+      ],
+      "slash": [
+        "/dm-role"
+      ],
+      "prefix": [],
+      "aliases": [],
+      "arguments": [
+        "role"
+      ],
+      "argumentNotes": "role; modal collects content",
+      "tier": "Staff",
+      "description": "Sends a direct message to members with a role, with progress/rate handling.",
+      "example": "/dm-role role:@Staff",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "utility-75",
+      "category": "Utility",
+      "name": "/help",
+      "command": "/help",
+      "spellings": [
+        "/help",
+        "n!help"
+      ],
+      "slash": [
+        "/help"
+      ],
+      "prefix": [
+        "n!help"
+      ],
+      "aliases": [],
+      "arguments": [
+        "category"
+      ],
+      "argumentNotes": "optional category",
+      "tier": "Staff",
+      "description": "Shows categorized feature/command guidance.",
+      "example": "/help category:overview",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "utility-76",
+      "category": "Utility",
+      "name": "/ping",
+      "command": "/ping",
+      "spellings": [
+        "/ping",
+        "n!ping"
+      ],
+      "slash": [
+        "/ping"
+      ],
+      "prefix": [
+        "n!ping"
+      ],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Bot owner",
+      "description": "Reports gateway and API response latency.",
+      "example": "/ping",
+      "visibility": "internal"
+    },
+    {
+      "id": "utility-77",
+      "category": "Utility",
+      "name": "/uptime",
+      "command": "/uptime",
+      "spellings": [
+        "/uptime",
+        "n!uptime"
+      ],
+      "slash": [
+        "/uptime"
+      ],
+      "prefix": [
+        "n!uptime"
+      ],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Bot owner",
+      "description": "Reports time since the process started.",
+      "example": "/uptime",
+      "visibility": "internal"
+    },
+    {
+      "id": "utility-78",
+      "category": "Utility",
+      "name": "/stats",
+      "command": "/stats",
+      "spellings": [
+        "/stats",
+        "n!stats",
+        "botinfo",
+        "about"
+      ],
+      "slash": [
+        "/stats"
+      ],
+      "prefix": [
+        "n!stats"
+      ],
+      "aliases": [
+        "botinfo",
+        "about"
+      ],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Bot owner",
+      "description": "Reports process/bot runtime metrics.",
+      "example": "/stats",
+      "visibility": "internal"
+    },
+    {
+      "id": "utility-79",
+      "category": "Utility",
+      "name": "/userinfo",
+      "command": "/userinfo",
+      "spellings": [
+        "/userinfo",
+        "n!userinfo",
+        "whois",
+        "ui"
+      ],
+      "slash": [
+        "/userinfo"
+      ],
+      "prefix": [
+        "n!userinfo"
+      ],
+      "aliases": [
+        "whois",
+        "ui"
+      ],
+      "arguments": [
+        "member"
+      ],
+      "argumentNotes": "optional member",
+      "tier": "Public",
+      "description": "Displays profile/account/server membership information.",
+      "example": "/userinfo member:@member",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "utility-80",
+      "category": "Utility",
+      "name": "/serverinfo",
+      "command": "/serverinfo",
+      "spellings": [
+        "/serverinfo",
+        "n!serverinfo",
+        "server",
+        "si"
+      ],
+      "slash": [
+        "/serverinfo"
+      ],
+      "prefix": [
+        "n!serverinfo"
+      ],
+      "aliases": [
+        "server",
+        "si"
+      ],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Public",
+      "description": "Displays information about the current server.",
+      "example": "/serverinfo",
+      "visibility": "public-reference"
+    },
+    {
+      "id": "internal-81",
+      "category": "Internal",
+      "name": "n!addnp",
+      "command": "n!addnp",
+      "spellings": [
+        "n!addnp",
+        "npadd"
+      ],
+      "slash": [],
+      "prefix": [
+        "n!addnp"
+      ],
+      "aliases": [
+        "npadd"
+      ],
+      "arguments": [
+        "user"
+      ],
+      "argumentNotes": "user ID",
+      "tier": "Bot owner",
+      "description": "Adds a global non-prefix command allowlist entry.",
+      "example": "n!addnp user:@member",
+      "visibility": "internal"
+    },
+    {
+      "id": "internal-82",
+      "category": "Internal",
+      "name": "n!removenp",
+      "command": "n!removenp",
+      "spellings": [
+        "n!removenp",
+        "npremove"
+      ],
+      "slash": [],
+      "prefix": [
+        "n!removenp"
+      ],
+      "aliases": [
+        "npremove"
+      ],
+      "arguments": [
+        "user"
+      ],
+      "argumentNotes": "user ID",
+      "tier": "Bot owner",
+      "description": "Removes that allowlist entry.",
+      "example": "n!removenp user:@member",
+      "visibility": "internal"
+    },
+    {
+      "id": "internal-83",
+      "category": "Internal",
+      "name": "n!nplist",
+      "command": "n!nplist",
+      "spellings": [
+        "n!nplist",
+        "checknp"
+      ],
+      "slash": [],
+      "prefix": [
+        "n!nplist"
+      ],
+      "aliases": [
+        "checknp"
+      ],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Bot owner",
+      "description": "Lists allowlisted IDs.",
+      "example": "n!nplist",
+      "visibility": "internal"
+    },
+    {
+      "id": "internal-84",
+      "category": "Internal",
+      "name": "n!np",
+      "command": "n!np",
+      "spellings": [
+        "n!np"
+      ],
+      "slash": [],
+      "prefix": [
+        "n!np"
+      ],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Bot owner",
+      "description": "Prefix group entry/help.",
+      "example": "n!np",
+      "visibility": "internal"
+    },
+    {
+      "id": "internal-85",
+      "category": "Internal",
+      "name": "n!np add",
+      "command": "n!np add",
+      "spellings": [
+        "n!np add"
+      ],
+      "slash": [],
+      "prefix": [
+        "n!np add"
+      ],
+      "aliases": [],
+      "arguments": [
+        "user"
+      ],
+      "argumentNotes": "user ID",
+      "tier": "Bot owner",
+      "description": "Adds an allowlist entry.",
+      "example": "n!np add user:@member",
+      "visibility": "internal"
+    },
+    {
+      "id": "internal-86",
+      "category": "Internal",
+      "name": "n!np remove",
+      "command": "n!np remove",
+      "spellings": [
+        "n!np remove"
+      ],
+      "slash": [],
+      "prefix": [
+        "n!np remove"
+      ],
+      "aliases": [],
+      "arguments": [
+        "user"
+      ],
+      "argumentNotes": "user ID",
+      "tier": "Bot owner",
+      "description": "Removes an allowlist entry.",
+      "example": "n!np remove user:@member",
+      "visibility": "internal"
+    },
+    {
+      "id": "internal-87",
+      "category": "Internal",
+      "name": "n!np list",
+      "command": "n!np list",
+      "spellings": [
+        "n!np list"
+      ],
+      "slash": [],
+      "prefix": [
+        "n!np list"
+      ],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Bot owner",
+      "description": "Lists allowlisted IDs.",
+      "example": "n!np list",
+      "visibility": "internal"
+    },
+    {
+      "id": "internal-88",
+      "category": "Internal",
+      "name": "n!sync",
+      "command": "n!sync",
+      "spellings": [
+        "n!sync"
+      ],
+      "slash": [],
+      "prefix": [
+        "n!sync"
+      ],
+      "aliases": [],
+      "arguments": [
+        "mode"
+      ],
+      "argumentNotes": "optional mode (guild/force handling in source)",
+      "tier": "Bot owner",
+      "description": "Synchronizes slash command definitions with Discord.",
+      "example": "n!sync mode:guild",
+      "visibility": "internal"
+    },
+    {
+      "id": "internal-89",
+      "category": "Internal",
+      "name": "n!invite",
+      "command": "n!invite",
+      "spellings": [
+        "n!invite"
+      ],
+      "slash": [],
+      "prefix": [
+        "n!invite"
+      ],
+      "aliases": [],
+      "arguments": [],
+      "argumentNotes": "none",
+      "tier": "Bot owner",
+      "description": "Returns an invite link generated from the active bot ID.",
+      "example": "n!invite",
+      "visibility": "internal"
+    }
+  ]
+}

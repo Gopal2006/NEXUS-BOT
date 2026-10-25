@@ -61,9 +61,9 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ["Space Grotesk", "Syne", "sans-serif"],
-        sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
-        mono: ["JetBrains Mono", "monospace"],
+        display: ["Barlow Condensed", "sans-serif"],
+        sans: ["IBM Plex Sans", "sans-serif"],
+        mono: ["IBM Plex Mono", "monospace"],
       },
       borderRadius: {
         glass: "20px",

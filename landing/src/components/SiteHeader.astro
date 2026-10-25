@@ -1,0 +1,33 @@
+---
+import Mark from "./Mark.astro";
+import AddButton from "./AddButton.astro";
+const { active = "" } = Astro.props;
+const links = [
+  { href: "/#features", label: "Features", key: "features" },
+  { href: "/commands/", label: "Commands", key: "commands" },
+  { href: "/#dashboard", label: "Dashboard", key: "dashboard" },
+  { href: "/#trust", label: "Trust", key: "trust" },
+  { href: "/#faq", label: "FAQ", key: "faq" },
+];
+---
+<header class="site-header">
+  <div class="nav-inner">
+    <Mark />
+    <nav id="primary-nav" class="primary-nav" aria-label="Primary navigation">
+      {links.map((link) => (
+        <a href={link.href} class:list={{ "nav-active": active === link.key }} aria-current={active === link.key ? "page" : undefined}>
+          {link.label}
+        </a>
+      ))}
+    </nav>
+    <div class="nav-actions">
+      <AddButton compact />
+      <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav" type="button">
+        <span class="sr-only">Toggle navigation</span>
+        <svg aria-hidden="true" viewBox="0 0 20 20" width="21" height="21" fill="none">
+          <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>

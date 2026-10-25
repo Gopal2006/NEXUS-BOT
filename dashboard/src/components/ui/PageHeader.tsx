@@ -17,7 +17,7 @@ export function PageHeader({ icon, title, description, action }: PageHeaderProps
           </div>
         )}
         <div>
-          <h1 className="text-[26px] font-semibold tracking-tight text-[var(--text)] leading-tight">
+          <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight text-[var(--text)] leading-[.94]">
             {title}
           </h1>
           {description && (

@@ -1,0 +1,30 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import CommandCatalog from "../components/CommandCatalog.astro";
+import commandData from "../data/commands.json";
+const commands = commandData.commands.filter((command) => command.visibility === "public-reference");
+---
+<SiteLayout
+  title="NEXUS commands — searchable command reference"
+  description="Search the documented NEXUS slash and n! prefix commands. Every command shows its arguments and access tier."
+  path="/commands/"
+>
+  <SiteHeader active="commands" />
+  <main id="main">
+    <header class="page-hero">
+      <div class="container">
+        <p class="eyebrow">Command reference</p>
+        <h1>Commands with access in view.</h1>
+        <p>Browse slash and prefix spellings, arguments, and the permission tier required. Bot-owner diagnostic and maintenance commands are intentionally not listed here.</p>
+      </div>
+    </header>
+    <section class="command-page" aria-label="Searchable command reference">
+      <div class="container">
+        <CommandCatalog commands={commands} mode="full" />
+      </div>
+    </section>
+  </main>
+  <SiteFooter />
+</SiteLayout>

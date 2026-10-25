@@ -17,6 +17,11 @@ BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
 BRAND_NAME = os.getenv("BRAND_NAME", "Nexus").strip()
 SUPPORT_SERVER = os.getenv("SUPPORT_SERVER", "https://discord.gg/PLACEHOLDER").strip()
 
+# Discord application permission bitfield used in generated invite URLs.
+# Scoped to the bot's audited moderation, role/channel, message, and interaction
+# features; it intentionally excludes Administrator (8).
+BOT_INVITE_PERMISSIONS = 1374792445014
+
 # Bot Owners: Comma-separated list of Discord user IDs
 # Defaults to original developer ID if unspecified
 _raw_owners = os.getenv("OWNER_IDS", "1201050377911554061")

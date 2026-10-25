@@ -1,0 +1,65 @@
+{
+  "source": "FEATURES.md",
+  "generatedAtBuild": true,
+  "features": [
+    {
+      "name": "Moderation & case history",
+      "description": "Moderation actions create case history with member, moderator, reason, and timestamp.",
+      "command": "/ban",
+      "icon": "shield"
+    },
+    {
+      "name": "Tickets with transcripts",
+      "description": "Members open private support channels; closing creates a text transcript.",
+      "command": "/ticket setup",
+      "icon": "ticket"
+    },
+    {
+      "name": "Leveling & rewards",
+      "description": "Message activity earns configurable XP, levels, and milestone role rewards.",
+      "command": "/rank",
+      "icon": "chart"
+    },
+    {
+      "name": "Giveaways & polls",
+      "description": "Run persisted giveaways and interactive polls with optional role eligibility.",
+      "command": "/giveaway start",
+      "icon": "vote"
+    },
+    {
+      "name": "Autorole & reaction roles",
+      "description": "Assign a role on join or let members choose from configured button panels.",
+      "command": "/autorole set-human",
+      "icon": "users"
+    },
+    {
+      "name": "Audit logging",
+      "description": "Route moderation, server, activity, and command events to configured channels.",
+      "command": "/setupbot",
+      "icon": "list"
+    },
+    {
+      "name": "Announcements & DMs",
+      "description": "Compose server announcements or send staff-directed member and role messages.",
+      "command": "/announce",
+      "icon": "send"
+    },
+    {
+      "name": "Autoresponders",
+      "description": "Reply to configured message triggers using supported matching rules.",
+      "command": "/autoresponder add",
+      "icon": "reply"
+    },
+    {
+      "name": "Games",
+      "description": "Start button-based Tic-Tac-Toe, Rock-Paper-Scissors, and number guessing.",
+      "command": "/tictactoe",
+      "icon": "game"
+    }
+  ],
+  "verifiedFacts": {
+    "logChannelCount": 4,
+    "invitationPermissionInteger": 1374792445014,
+    "commandTextMaxCharacters": 500
+  }
+}

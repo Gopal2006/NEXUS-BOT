@@ -1,475 +1,128 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import {
-  Gavel,
-  Users,
-  CheckCircle2,
-  AlertTriangle,
-  ArrowRight,
-  FileText,
-  Ticket,
-  Activity,
-  Clock,
-  Settings,
-  Sparkles,
-} from "lucide-react";
+import { ArrowRight, Check, CircleAlert, Clock3, FileText, Fingerprint, MessageSquareText, Settings2, Users, UserRoundCheck } from "lucide-react";
 import { Skeleton } from "@/components/Skeleton";
-import { CountUp } from "@/components/ui/CountUp";
 import { stripEmojis } from "@/lib/utils";
 
-export default function GuildOverviewPage() {
-  const params = useParams();
-  const guildId = params.guildId as string;
+interface GuildInfo { id?: string; name: string; icon?: string | null; member_count?: number; }
+interface GuildSettings {
+  bot_role_id?: string | null;
+  mod_log_channel_id?: string | null;
+  server_log_channel_id?: string | null;
+  activity_log_channel_id?: string | null;
+  cmd_log_channel_id?: string | null;
+  ticket_category_id?: string | null;
+  welcome_channel_id?: string | null;
+  [key: string]: unknown;
+}
+type Readiness = { title: string; description: string; ready: boolean; href: string; action: string };
 
-  const [guild, setGuild] = useState<any>(null);
-  const [settings, setSettings] = useState<any>(null);
+export default function GuildOverviewPage() {
+  const { guildId } = useParams<{ guildId: string }>();
+  const [guild, setGuild] = useState<GuildInfo | null>(null);
+  const [settings, setSettings] = useState<GuildSettings | null>(null);
   const [loading, setLoading] = useState(true);
-  const [hoveredPoint, setHoveredPoint] = useState<{ day: string; count: number; auditCount: number; x: number; y: number } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let active = true;
     async function loadOverview() {
+      setLoading(true);
+      setError(null);
       try {
-        setLoading(true);
-        const [gRes, sRes] = await Promise.all([
+        const [guildRes, settingsRes] = await Promise.all([
           fetch(`/api/backend/guilds/${guildId}`),
           fetch(`/api/backend/guilds/${guildId}/settings`),
         ]);
-
-        if (gRes.ok) setGuild(await gRes.json());
-        if (sRes.ok) setSettings(await sRes.json());
-      } catch {
-        // Handled gracefully
+        if (!guildRes.ok) throw new Error("Nexus could not load this server. Check your access and try again.");
+        if (!settingsRes.ok) throw new Error("Server details loaded, but configuration could not be read.");
+        const [guildData, settingsData] = await Promise.all([guildRes.json(), settingsRes.json()]);
+        if (active) { setGuild(guildData); setSettings(settingsData); }
+      } catch (e) {
+        if (active) setError(e instanceof Error ? e.message : "Could not load this server.");
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     }
-    loadOverview();
+    if (guildId) loadOverview();
+    return () => { active = false; };
   }, [guildId]);
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="glass rounded-2xl p-6">
-          <Skeleton className="w-48 h-8 rounded-lg mb-2" />
-          <Skeleton className="w-32 h-4 rounded-md" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="glass rounded-2xl p-5 space-y-3">
-              <Skeleton className="w-24 h-3 rounded-md" />
-              <Skeleton className="w-16 h-6 rounded-lg" />
-              <Skeleton className="w-full h-3 rounded-md" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div className="space-y-4 py-4"><Skeleton className="h-8 w-56 rounded" /><Skeleton className="h-24 w-full rounded-xl" /><Skeleton className="h-52 w-full rounded-xl" /></div>;
+  if (error || !guild || !settings) return <section className="my-8 max-w-2xl border border-[var(--error)]/40 bg-[var(--glass-bg)] rounded-xl p-5"><div className="flex gap-3"><CircleAlert className="w-5 h-5 text-[var(--error)] shrink-0" /><div><h1 className="font-display text-2xl">Server overview unavailable</h1><p className="text-sm text-[var(--text-muted)] mt-1">{error || "The server response was incomplete."}</p><button onClick={() => window.location.reload()} className="btn-secondary px-3 py-2 text-sm mt-4">Try again</button></div></div></section>;
 
-  const rawName = guild?.name || "Server Overview";
-  const cleanGuildName = stripEmojis(rawName) || rawName;
-
-  const hasModLog = !!settings?.mod_log_channel_id;
-  const hasServerLog = !!settings?.server_log_channel_id;
-  const hasActivityLog = !!settings?.activity_log_channel_id;
-  const hasCmdLog = !!settings?.cmd_log_channel_id;
-  const configuredLogsCount = [hasModLog, hasServerLog, hasActivityLog, hasCmdLog].filter(Boolean).length;
-
-  // Chart telemetry points for the 7-day timeline
-  // Line 1: Commands (ice-silver), Line 2: Audits (--hint: #8E6B9A)
-  const telemetryData = [
-    { day: "MON", count: 24, auditCount: 12, x: 40, y: 110, y2: 125 },
-    { day: "TUE", count: 38, auditCount: 19, x: 130, y: 75, y2: 105 },
-    { day: "WED", count: 31, auditCount: 14, x: 220, y: 95, y2: 115 },
-    { day: "THU", count: 52, auditCount: 28, x: 310, y: 40, y2: 80 },
-    { day: "FRI", count: 47, auditCount: 22, x: 400, y: 55, y2: 90 },
-    { day: "SAT", count: 68, auditCount: 35, x: 490, y: 20, y2: 65 },
-    { day: "SUN", count: 59, auditCount: 30, x: 580, y: 35, y2: 75 },
+  const name = stripEmojis(guild.name) || guild.name;
+  const logChannels = [settings.mod_log_channel_id, settings.server_log_channel_id, settings.activity_log_channel_id, settings.cmd_log_channel_id];
+  const configuredLogs = logChannels.filter(Boolean).length;
+  const readiness: Readiness[] = [
+    { title: "Staff access", description: settings.bot_role_id ? "A staff role is assigned to Nexus management." : "Management is limited to the server owner until a staff role is assigned.", ready: !!settings.bot_role_id, href: `/dashboard/${guildId}/general`, action: settings.bot_role_id ? "Review access" : "Set staff role" },
+    { title: "Audit routing", description: `${configuredLogs} of 4 audit destinations are configured.`, ready: configuredLogs === 4, href: `/dashboard/${guildId}/general`, action: configuredLogs === 4 ? "Review channels" : "Configure logs" },
+    { title: "Support tickets", description: settings.ticket_category_id ? "A ticket category is connected." : "No ticket category is selected yet.", ready: !!settings.ticket_category_id, href: `/dashboard/${guildId}/tickets`, action: settings.ticket_category_id ? "Open tickets" : "Set up tickets" },
+    { title: "Welcome messages", description: settings.welcome_channel_id ? "A welcome channel is selected." : "Welcome messaging has no channel configured.", ready: !!settings.welcome_channel_id, href: `/dashboard/${guildId}/welcome`, action: settings.welcome_channel_id ? "Edit welcome" : "Set up welcome" },
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300 font-sans">
-      {/* Header Banner */}
-      <div className="glass rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative overflow-hidden">
-        <div className="sheen" />
-        <div className="flex items-center gap-5">
-          {guild?.icon ? (
-            <img
-              src={guild.icon}
-              alt={cleanGuildName}
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border border-[var(--glass-border)] shadow-lg object-cover"
-            />
-          ) : (
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl glass-soft border border-[var(--glass-border)] flex items-center justify-center font-display font-bold text-2xl text-[var(--ice-silver)]">
-              {cleanGuildName[0]?.toUpperCase() || "S"}
-            </div>
-          )}
-          <div>
-            <div className="text-[10px] font-mono tracking-[0.25em] text-[var(--hint)] uppercase mb-1">
-              SERVER DASHBOARD
-            </div>
-            <h1 className="font-display font-bold text-2xl sm:text-3xl text-[var(--ice-silver)] tracking-tight">
-              {cleanGuildName}
-            </h1>
-            <div className="flex items-center gap-3 text-xs text-[var(--text-muted)] mt-1.5 font-mono">
-              <span className="flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5 text-[var(--hint)]" />
-                <CountUp end={guild?.member_count || 0} /> MEMBERS
-              </span>
-              <span>•</span>
-              <span className="tracking-wider">ID: {guildId}</span>
-            </div>
+    <div className="max-w-[1040px] mx-auto pb-16">
+      <header className="py-5 sm:py-7 border-b border-[var(--glass-border)]">
+        <div className="flex items-center gap-4">
+          {guild.icon ? <img src={guild.icon} alt="" className="w-12 h-12 rounded-lg object-cover border border-[var(--glass-border-strong)]" /> : <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-[var(--glass-bg-strong)] border border-[var(--glass-border-strong)] font-display text-2xl text-[var(--accent)]">{name.charAt(0).toUpperCase()}</div>}
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-mono text-[var(--text-faint)] uppercase tracking-[.11em]">SERVER WORKSPACE</p>
+            <h1 className="font-display text-4xl sm:text-5xl leading-[.95] truncate">{name}</h1>
           </div>
+          <Link href={`/dashboard/${guildId}/general`} className="btn-secondary min-h-11 px-3 sm:px-4 inline-flex items-center gap-2 text-sm"><Settings2 size={15} /><span className="hidden sm:inline">Server settings</span><span className="sm:hidden">Settings</span></Link>
         </div>
-
-        <Link
-          href={`/dashboard/${guildId}/general`}
-          className="group inline-flex items-center gap-3 px-5 py-2.5 rounded-xl border border-[var(--glass-border)] glass-soft hover:bg-[var(--ice-silver)] text-[var(--ice-silver)] hover:text-[var(--ink)] text-xs font-mono tracking-[0.2em] uppercase font-semibold transition-all duration-300 self-start sm:self-auto shadow-sm"
-        >
-          <Settings className="w-3.5 h-3.5" />
-          <span>Configure</span>
-        </Link>
-      </div>
-
-      {/* Top 4 Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* Stat 1: Members */}
-        <div className="glass rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[var(--ice-silver)]/25 hover:shadow-xl relative overflow-hidden">
-          <div className="sheen" />
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-[var(--text-faint)]">
-              TOTAL MEMBERS
-            </span>
-            <Users className="w-4 h-4 text-[var(--hint)]" />
-          </div>
-          <div className="font-display font-bold text-2xl text-[var(--ice-silver)] mb-1">
-            <CountUp end={guild?.member_count || 0} />
-          </div>
-          <div className="text-[11px] text-[var(--text-muted)] flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)]" />
-            <span>Active Guild Sync</span>
-          </div>
+        <div className="flex items-center flex-wrap gap-x-5 gap-y-2 mt-4 text-xs text-[var(--text-muted)]">
+          <span className="inline-flex items-center gap-2"><Users size={14} />{typeof guild.member_count === "number" ? <>{guild.member_count.toLocaleString()} members</> : "Member count unavailable"}</span>
+          <span className="inline-flex items-center gap-2 font-mono"><span className="text-[var(--text-faint)]">SERVER ID</span>{guild.id || guildId}</span>
         </div>
+      </header>
 
-        {/* Stat 2: Bot-Role Security */}
-        <div className="glass rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[var(--ice-silver)]/25 hover:shadow-xl relative overflow-hidden">
-          <div className="sheen" />
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-[var(--text-faint)]">
-              STAFF ROLE
-            </span>
-            <Gavel className="w-4 h-4 text-[var(--hint)]" />
-          </div>
-          <div className="font-display font-bold text-xl text-[var(--ice-silver)] mb-1 flex items-center gap-2">
-            {settings?.bot_role_id ? (
-              <>
-                <CheckCircle2 className="w-5 h-5 text-[var(--success)]" />
-                <span>Enforced</span>
-              </>
-            ) : (
-              <>
-                <AlertTriangle className="w-5 h-5 text-[var(--warning)]" />
-                <span>Owner Only</span>
-              </>
-            )}
-          </div>
-          <div className="text-[11px] text-[var(--text-muted)] truncate">
-            {settings?.bot_role_id ? "Staff role designated" : "No staff role assigned"}
-          </div>
+      <section className="grid lg:grid-cols-[.8fr_1.2fr] gap-8 lg:gap-14 py-8 border-b border-[var(--glass-border)]">
+        <div>
+          <p className="text-[11px] font-mono uppercase tracking-[.12em] text-[var(--accent)]">Readiness</p>
+          <h2 className="font-display text-3xl mt-1">The basics, at a glance.</h2>
+          <p className="text-sm leading-relaxed text-[var(--text-muted)] mt-2">Configuration status from this server’s current Nexus settings.</p>
         </div>
-
-        {/* Stat 3: Telemetry Latency */}
-        <div className="glass rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[var(--ice-silver)]/25 hover:shadow-xl relative overflow-hidden">
-          <div className="sheen" />
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-[var(--text-faint)]">
-              BOT LATENCY
-            </span>
-            <Activity className="w-4 h-4 text-[var(--success)]" />
-          </div>
-          <div className="font-display font-bold text-2xl text-[var(--ice-silver)] mb-1">
-            <CountUp end={18} suffix=" ms" />
-          </div>
-          <div className="text-[11px] text-[var(--text-muted)] flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)] animate-pulse" />
-            <span>Gateway Operational</span>
-          </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="border-l-2 border-[var(--accent)] pl-3 py-1"><div className="text-xs text-[var(--text-muted)]">Audit destinations</div><strong className="font-display text-3xl">{configuredLogs}<span className="text-lg text-[var(--text-faint)]"> / 4</span></strong></div>
+          <div className="border-l-2 border-[var(--glass-border-strong)] pl-3 py-1"><div className="text-xs text-[var(--text-muted)]">Staff role</div><strong className="font-display text-3xl">{settings.bot_role_id ? "Assigned" : "Owner only"}</strong></div>
         </div>
+      </section>
 
-        {/* Stat 4: Bot Uptime */}
-        <div className="glass rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[var(--ice-silver)]/25 hover:shadow-xl relative overflow-hidden">
-          <div className="sheen" />
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-[var(--text-faint)]">
-              UPTIME
-            </span>
-            <Clock className="w-4 h-4 text-[var(--hint)]" />
-          </div>
-          <div className="font-display font-bold text-2xl text-[var(--ice-silver)] mb-1">
-            99.98%
-          </div>
-          <div className="text-[11px] text-[var(--text-muted)]">
-            Pycord Bot Core v2.0
-          </div>
+      <section className="grid lg:grid-cols-[.8fr_1.2fr] gap-8 lg:gap-14 py-8 border-b border-[var(--glass-border)]">
+        <div>
+          <p className="text-[11px] font-mono uppercase tracking-[.12em] text-[var(--accent)]">Setup checklist</p>
+          <h2 className="font-display text-3xl mt-1">Keep the guardrails close.</h2>
+          <p className="text-sm leading-relaxed text-[var(--text-muted)] mt-2">These links open the settings or workflow for each item.</p>
         </div>
-      </div>
-
-      {/* Telemetry Chart: Line 1 Ice Silver, Line 2 --hint, Faint Grid, Glass Tooltip */}
-      <div className="glass rounded-2xl p-6 sm:p-8 relative overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <div className="text-[10px] font-mono tracking-[0.25em] text-[var(--hint)] uppercase mb-1">
-              ACTIVITY METRICS
-            </div>
-            <h2 className="font-display font-bold text-lg text-[var(--ice-silver)] tracking-tight">
-              7-Day Command & Audit Volume
-            </h2>
-          </div>
-          <div className="flex items-center gap-6 text-xs font-mono text-[var(--text-muted)]">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-sm bg-[var(--ice-silver)]" />
-              <span>Commands (Line 1)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-sm bg-[var(--hint)]" />
-              <span>Audits (Line 2)</span>
-            </div>
-          </div>
+        <div className="divide-y divide-[var(--glass-border)]">
+          {readiness.map((item) => <Link key={item.title} href={item.href} className="group grid grid-cols-[24px_1fr_auto] gap-3 items-center py-4 first:pt-0 last:pb-0">
+            <span className={item.ready ? "text-[var(--success)]" : "text-[var(--warning)]"}>{item.ready ? <Check size={17} /> : <Clock3 size={17} />}</span>
+            <span className="min-w-0"><strong className="block text-sm font-medium group-hover:text-[var(--accent)]">{item.title}</strong><span className="block text-xs text-[var(--text-muted)] mt-1 leading-relaxed">{item.description}</span></span>
+            <span className="text-xs text-[var(--text-faint)] group-hover:text-[var(--ice-silver)] inline-flex items-center gap-1 whitespace-nowrap">{item.action}<ArrowRight size={13} /></span>
+          </Link>)}
         </div>
+      </section>
 
-        {/* Chart SVG */}
-        <div className="w-full relative">
-          <svg
-            viewBox="0 0 620 160"
-            className="w-full h-48 select-none"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <defs>
-              <linearGradient id="silverArea" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#DDE3E8" stopOpacity="0.22" />
-                <stop offset="100%" stopColor="#DDE3E8" stopOpacity="0.0" />
-              </linearGradient>
-              <linearGradient id="hintArea" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#8E6B9A" stopOpacity="0.18" />
-                <stop offset="100%" stopColor="#8E6B9A" stopOpacity="0.0" />
-              </linearGradient>
-            </defs>
-
-            {/* Faint Horizontal 1px Grid Lines (at 6-8% opacity) */}
-            <line x1="20" y1="30" x2="600" y2="30" stroke="#DDE3E8" strokeOpacity="0.06" strokeWidth="1" strokeDasharray="3 3" />
-            <line x1="20" y1="75" x2="600" y2="75" stroke="#DDE3E8" strokeOpacity="0.06" strokeWidth="1" strokeDasharray="3 3" />
-            <line x1="20" y1="120" x2="600" y2="120" stroke="#DDE3E8" strokeOpacity="0.08" strokeWidth="1" />
-
-            {/* Filled Area - Line 2 Hint */}
-            <polygon
-              points="40,125 130,105 220,115 310,80 400,90 490,65 580,75 580,120 40,120"
-              fill="url(#hintArea)"
-            />
-
-            {/* Filled Area - Line 1 Ice Silver */}
-            <polygon
-              points="40,110 130,75 220,95 310,40 400,55 490,20 580,35 580,120 40,120"
-              fill="url(#silverArea)"
-            />
-
-            {/* Smooth Connected Line 2 (--hint) */}
-            <polyline
-              points="40,125 130,105 220,115 310,80 400,90 490,65 580,75"
-              stroke="#8E6B9A"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeDasharray="4 3"
-            />
-
-            {/* Smooth Connected Line 1 (Ice Silver) */}
-            <polyline
-              points="40,110 130,75 220,95 310,40 400,55 490,20 580,35"
-              stroke="#DDE3E8"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-
-            {/* Interactive Data Points */}
-            {telemetryData.map((d, i) => (
-              <g
-                key={i}
-                className="cursor-pointer group/point"
-                onMouseEnter={() => setHoveredPoint(d)}
-                onMouseLeave={() => setHoveredPoint(null)}
-              >
-                {/* Vertical hover guide */}
-                <line
-                  x1={d.x}
-                  y1="20"
-                  x2={d.x}
-                  y2="120"
-                  stroke="#DDE3E8"
-                  strokeOpacity={hoveredPoint?.day === d.day ? 0.35 : 0}
-                  strokeWidth="1"
-                  strokeDasharray="2 2"
-                />
-
-                {/* Point 1 (Ice Silver) */}
-                <circle
-                  cx={d.x}
-                  cy={d.y}
-                  r={hoveredPoint?.day === d.day ? 6 : 4}
-                  fill="#0B0709"
-                  stroke="#DDE3E8"
-                  strokeWidth="2"
-                  className="transition-all duration-200"
-                />
-
-                {/* Point 2 (Hint) */}
-                <circle
-                  cx={d.x}
-                  cy={d.y2}
-                  r={hoveredPoint?.day === d.day ? 5 : 3}
-                  fill="#0B0709"
-                  stroke="#8E6B9A"
-                  strokeWidth="1.5"
-                  className="transition-all duration-200"
-                />
-
-                {/* Day Label */}
-                <text
-                  x={d.x}
-                  y="142"
-                  textAnchor="middle"
-                  fill="#DDE3E8"
-                  fillOpacity={hoveredPoint?.day === d.day ? "0.9" : "0.45"}
-                  fontSize="10"
-                  fontFamily="monospace"
-                  letterSpacing="0.1em"
-                >
-                  {d.day}
-                </text>
-              </g>
-            ))}
-          </svg>
-
-          {/* Glass Tooltip */}
-          {hoveredPoint && (
-            <div
-              className="absolute pointer-events-none glass-strong px-3 py-2 rounded-xl text-xs font-mono shadow-2xl transition-all duration-150 z-20 border border-[var(--glass-border)]"
-              style={{
-                left: `${(hoveredPoint.x / 620) * 100}%`,
-                top: `${(hoveredPoint.y / 160) * 100}%`,
-                transform: "translate(-50%, -120%)",
-              }}
-            >
-              <div className="font-bold text-[var(--ice-silver)] mb-1">
-                {hoveredPoint.day} Activity
-              </div>
-              <div className="text-[var(--ice-silver)] flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--ice-silver)]" />
-                <span>Commands: {hoveredPoint.count}</span>
-              </div>
-              <div className="text-[var(--hint)] flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--hint)]" />
-                <span>Audits: {hoveredPoint.auditCount}</span>
-              </div>
-            </div>
-          )}
+      <section className="grid lg:grid-cols-[.8fr_1.2fr] gap-8 lg:gap-14 py-8">
+        <div><p className="text-[11px] font-mono uppercase tracking-[.12em] text-[var(--accent)]">Workspaces</p><h2 className="font-display text-3xl mt-1">Go straight to the work.</h2><p className="text-sm leading-relaxed text-[var(--text-muted)] mt-2">Server management stays separate from Nexus product administration.</p></div>
+        <div className="grid sm:grid-cols-2 gap-x-8">
+          {[
+            ["Moderation", "Member actions and case history", "moderation"],
+            ["Audit history", "Review dashboard activity", "audit"],
+            ["Announcements", "Compose a server announcement", "announcements"],
+            ["Support tickets", "Configure ticket intake", "tickets"],
+            ["Welcome & leave", "Set member arrival messages", "welcome"],
+            ["Leveling & XP", "Configure activity rewards", "leveling"],
+          ].map(([title, detail, route]) => <Link key={route} href={`/dashboard/${guildId}/${route}`} className="group py-3 border-b border-[var(--glass-border)] flex items-start justify-between gap-3">
+            <span><strong className="block text-sm font-medium group-hover:text-[var(--accent)]">{title}</strong><span className="block text-xs text-[var(--text-muted)] mt-1">{detail}</span></span><ArrowRight size={14} className="text-[var(--text-faint)] mt-1 group-hover:text-[var(--accent)]" />
+          </Link>)}
         </div>
-      </div>
-
-      {/* Core Systems Status Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {/* Logging System */}
-        <div className="glass rounded-2xl p-6 flex flex-col justify-between group hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
-          <div className="sheen" />
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-[var(--text-faint)]">
-                AUDIT LOGS
-              </span>
-              <div className="w-9 h-9 rounded-xl glass-soft border border-[var(--glass-border)] flex items-center justify-center text-[var(--hint)]">
-                <FileText className="w-4 h-4" />
-              </div>
-            </div>
-            <h3 className="font-display font-bold text-base text-[var(--ice-silver)] mb-1">
-              4-Channel Audit Logs
-            </h3>
-            <p className="text-xs text-[var(--text-muted)] mb-4 leading-relaxed">
-              {configuredLogsCount === 4
-                ? "Full quad-channel capture enabled: moderation, server, staff, and commands."
-                : `${configuredLogsCount} of 4 channels connected. Run /setupbot or configure manually.`}
-            </p>
-          </div>
-          <Link
-            href={`/dashboard/${guildId}/general`}
-            className="text-xs font-mono tracking-wider text-[var(--ice-silver)] hover:text-white transition-colors flex items-center gap-1.5 pt-2 border-t border-[var(--glass-border)]"
-          >
-            <span>Configure Log Routing</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-
-        {/* Support Tickets */}
-        <div className="glass rounded-2xl p-6 flex flex-col justify-between group hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
-          <div className="sheen" />
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-[var(--text-faint)]">
-                SUPPORT TICKETS
-              </span>
-              <div className="w-9 h-9 rounded-xl glass-soft border border-[var(--glass-border)] flex items-center justify-center text-[var(--hint)]">
-                <Ticket className="w-4 h-4" />
-              </div>
-            </div>
-            <h3 className="font-display font-bold text-base text-[var(--ice-silver)] mb-1">
-              Support Tickets Hub
-            </h3>
-            <p className="text-xs text-[var(--text-muted)] mb-4 leading-relaxed">
-              {settings?.ticket_category_id
-                ? "Active category bound. Interactive ticket creation buttons and HTML transcripts live."
-                : "No ticket category bound. Configure tickets to deploy support panels."}
-            </p>
-          </div>
-          <Link
-            href={`/dashboard/${guildId}/tickets`}
-            className="text-xs font-mono tracking-wider text-[var(--ice-silver)] hover:text-white transition-colors flex items-center gap-1.5 pt-2 border-t border-[var(--glass-border)]"
-          >
-            <span>Ticket Settings</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-
-        {/* Member Onboarding */}
-        <div className="glass rounded-2xl p-6 flex flex-col justify-between group hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
-          <div className="sheen" />
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-[var(--text-faint)]">
-                WELCOME & LEAVE
-              </span>
-              <div className="w-9 h-9 rounded-xl glass-soft border border-[var(--glass-border)] flex items-center justify-center text-[var(--hint)]">
-                <Sparkles className="w-4 h-4" />
-              </div>
-            </div>
-            <h3 className="font-display font-bold text-base text-[var(--ice-silver)] mb-1">
-              Welcome & Leave Cards
-            </h3>
-            <p className="text-xs text-[var(--text-muted)] mb-4 leading-relaxed">
-              Automated greeting messages, autorole assignment, embed builder, and native media uploads.
-            </p>
-          </div>
-          <Link
-            href={`/dashboard/${guildId}/welcome`}
-            className="text-xs font-mono tracking-wider text-[var(--ice-silver)] hover:text-white transition-colors flex items-center gap-1.5 pt-2 border-t border-[var(--glass-border)]"
-          >
-            <span>Manage Welcome</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }

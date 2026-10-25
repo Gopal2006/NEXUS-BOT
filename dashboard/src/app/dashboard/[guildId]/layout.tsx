@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { FloatingSidebar } from "@/components/FloatingSidebar";
 import { FloatingTopBar } from "@/components/FloatingTopBar";
-import { BackgroundAurora } from "@/components/BackgroundAurora";
 
 export default function GuildDashboardLayout({
   children,
@@ -34,11 +33,8 @@ export default function GuildDashboardLayout({
   }, [guildId]);
 
   return (
-    <div className="min-h-screen bg-[var(--bg-deep)] text-[var(--ice-silver)] relative overflow-x-hidden selection:bg-[var(--ice-silver)]/20 selection:text-white">
-      {/* Background Aurora Drift Layer */}
-      <BackgroundAurora />
-
-      <div className="relative z-10 flex min-h-screen">
+    <div className="min-h-screen bg-[var(--bg-deep)] text-[var(--ice-silver)] relative overflow-x-hidden selection:bg-[var(--accent)]/30">
+       <div className="relative z-10 flex min-h-screen">
         {/* Floating Sidebar (Desktop: floating panel with 16px margins, Mobile: glass drawer) */}
         <FloatingSidebar
           guildId={guildId}
@@ -47,7 +43,7 @@ export default function GuildDashboardLayout({
         />
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0 pb-16">
+        <div className="flex-1 flex flex-col min-w-0 pb-12">
           {/* Floating Top Bar (16px from top) */}
           <FloatingTopBar
             guildName={guild?.name}
@@ -56,7 +52,7 @@ export default function GuildDashboardLayout({
           />
 
           {/* Centered Page Content Container (max-width 1240px, generous whitespace) */}
-          <main className="flex-1 px-4 sm:px-8 max-w-[1240px] w-full mx-auto">
+          <main className="flex-1 px-4 sm:px-7 lg:px-10 max-w-[1360px] w-full mx-auto">
             {children}
           </main>
         </div>

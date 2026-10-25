@@ -21,7 +21,6 @@ import { COMMANDS_DATABASE, CommandItem } from "@/lib/commandsData";
 import { TierDot } from "@/components/ui/TierDot";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { CountUp } from "@/components/ui/CountUp";
-import { BackgroundAurora } from "@/components/BackgroundAurora";
 import { FloatingTopBar } from "@/components/FloatingTopBar";
 import { cn } from "@/lib/utils";
 
@@ -40,83 +39,8 @@ function CommandsDirectoryContent() {
   const [selectedCommandId, setSelectedCommandId] = useState<string>(initialCmdId);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
-
   const searchInputRef = useRef<HTMLInputElement>(null);
   const listContainerRef = useRef<HTMLDivElement>(null);
-  const lettersRef = useRef<(HTMLSpanElement | null)[]>([]);
-
-  // Mouse velocity tracking for title letters
-  const mouseState = useRef({
-    lastX: 0,
-    lastY: 0,
-    lastTime: 0,
-    velocity: 0,
-    smoothedVelocity: 0,
-    dirX: 0,
-    idleTimeout: 0,
-  });
-
-  useEffect(() => {
-    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(motionQuery.matches);
-    const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
-    motionQuery.addEventListener("change", handler);
-
-    if (motionQuery.matches) return;
-
-    let rafId: number;
-    const onMouseMove = (e: MouseEvent) => {
-      const now = performance.now();
-      const dt = Math.max(10, now - mouseState.current.lastTime);
-      const dx = e.clientX - mouseState.current.lastX;
-      const dy = e.clientY - mouseState.current.lastY;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-
-      mouseState.current.velocity = dist / dt;
-      mouseState.current.dirX = dx !== 0 ? Math.sign(dx) : 0;
-      mouseState.current.lastX = e.clientX;
-      mouseState.current.lastY = e.clientY;
-      mouseState.current.lastTime = now;
-      mouseState.current.idleTimeout = now + 90;
-    };
-
-    window.addEventListener("mousemove", onMouseMove, { passive: true });
-
-    const updateLetterBlur = (now: number) => {
-      if (now > mouseState.current.idleTimeout) {
-        mouseState.current.velocity = 0;
-      }
-      mouseState.current.smoothedVelocity +=
-        (mouseState.current.velocity - mouseState.current.smoothedVelocity) * 0.18;
-
-      const v = mouseState.current.smoothedVelocity;
-      const blurPx = Math.min(8, v * 3.2);
-      const dir = mouseState.current.dirX;
-
-      lettersRef.current.forEach((el, idx) => {
-        if (!el) return;
-        if (v < 0.02) {
-          el.style.filter = "none";
-          el.style.transform = "none";
-        } else {
-          const offset = dir * Math.min(10, v * 4) * (1 + (idx - 3) * 0.1);
-          el.style.filter = `blur(${blurPx.toFixed(2)}px)`;
-          el.style.transform = `translateX(${offset.toFixed(2)}px)`;
-        }
-      });
-
-      rafId = requestAnimationFrame(updateLetterBlur);
-    };
-
-    rafId = requestAnimationFrame(updateLetterBlur);
-
-    return () => {
-      motionQuery.removeEventListener("change", handler);
-      window.removeEventListener("mousemove", onMouseMove);
-      cancelAnimationFrame(rafId);
-    };
-  }, []);
 
   // Categories list with counts
   const categoriesWithCounts = useMemo(() => {
@@ -275,12 +199,9 @@ function CommandsDirectoryContent() {
     });
   };
 
-  const titleChars = ["C", "o", "m", "m", "a", "n", "d", "s"];
 
   return (
     <div className="min-h-screen bg-[var(--bg-deep)] text-[var(--ice-silver)] relative pb-20 selection:bg-[var(--ice-silver)]/20 selection:text-white">
-      <BackgroundAurora />
-
       <div className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-8">
         <FloatingTopBar />
 
@@ -299,18 +220,7 @@ function CommandsDirectoryContent() {
               </div>
 
               {/* Huge Display Title with Velocity Motion Blur on Letters */}
-              <h1 className="font-display font-black text-6xl sm:text-7xl md:text-8xl tracking-tight text-[var(--ice-silver)] leading-none select-none flex items-center">
-                {titleChars.map((char, i) => (
-                  <span
-                    key={i}
-                    ref={(el) => {
-                      lettersRef.current[i] = el;
-                    }}
-                    className="inline-block transition-transform duration-75 will-change-transform"
-                  >
-                    {char}
-                  </span>
-                ))}
+              <h1 className="font-display font-semibold text-6xl sm:text-7xl md:text-8xl tracking-tight text-[var(--ice-silver)] leading-none select-none flex items-center">Commands
               </h1>
 
               <p className="text-[13px] sm:text-sm text-[var(--text-muted)] mt-3 max-w-xl leading-relaxed">

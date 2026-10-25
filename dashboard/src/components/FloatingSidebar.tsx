@@ -235,21 +235,21 @@ export function FloatingSidebar({
                             className={cn(
                               "flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all relative group",
                               isActive
-                                ? "glass-soft text-[var(--ice-silver)] shadow-sm font-semibold border border-[var(--glass-border-strong)]"
+                                ? "bg-[var(--glass-bg)] text-[var(--accent)] font-semibold border border-[var(--glass-border-strong)]"
                                 : "text-[var(--text-muted)] hover:text-[var(--ice-silver)] hover:bg-[var(--tint)] border border-transparent",
                               collapsed && "justify-center px-0"
                             )}
                           >
                             {/* 2px Ice Silver Active Indicator */}
                             {isActive && (
-                              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-[var(--ice-silver)] rounded-r-full shadow-[0_0_8px_rgba(221,227,232,0.5)]" />
+                              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 bg-[var(--accent)] rounded-r-full" />
                             )}
 
                             <Icon
                               className={cn(
                                 "w-4 h-4 shrink-0 transition-colors",
                                 isActive
-                                  ? "text-[var(--ice-silver)]"
+                                  ? "text-[var(--accent)]"
                                   : "text-[var(--text-faint)] group-hover:text-[var(--ice-silver)]"
                               )}
                             />

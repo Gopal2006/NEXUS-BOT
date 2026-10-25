@@ -1,0 +1,36 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import featureData from "../data/features.json";
+---
+<SiteLayout title="NEXUS terms — draft for review" description="A preliminary NEXUS terms page based on implemented bot behavior. Human and legal review required." path="/terms/">
+  <SiteHeader active="trust" />
+  <main id="main">
+    <header class="page-hero"><div class="container"><p class="eyebrow">Policy draft</p><h1>Terms, before the fine print.</h1><p>A transparent starting point for describing the current NEXUS bot.</p></div></header>
+    <div class="container policy-copy">
+      <div class="policy-banner">Draft: requires human and legal review before publication.</div>
+      <p>This page is a drafting aid based on the source audit based on the source audit. The repository does not contain a complete Terms of Service. An operator must review and replace this draft before relying on it as a legal agreement.</p>
+
+      <h2>What the service provides</h2>
+      <p>NEXUS is Discord bot software with moderation commands, server configuration, member support tickets, leveling, giveaways, polls, and related features. A separate web dashboard and API are present in the repository. The available features and access tiers are listed in the <a href="/commands/">command reference</a>.</p>
+
+      <h2>Server permissions and administrator decisions</h2>
+      <p>The invite requests a scoped set of Discord permissions for the audited moderation, role/channel, messaging, and interaction features (permission integer {featureData.verifiedFacts.invitationPermissionInteger}); it excludes Administrator. Server owners should review the authorization screen and the bot's role/access configuration before inviting or using it. NEXUS performs management actions only where command access checks and Discord permissions allow them.</p>
+
+      <h2>Operator and user responsibilities</h2>
+      <p>Server owners and moderators should configure roles, channels, logs, and access to fit their server. The source includes moderation operations that can affect members and channels. Use those operations with care and follow the rules that apply to your community.</p>
+
+      <h2>Data and availability</h2>
+      <p>The code stores configuration and feature data in SQLite. The source audit does not document general retention periods, a complete deletion process, service availability commitments, support response times, or uptime guarantees. None are promised by this draft.</p>
+
+      <h2>Pricing and support</h2>
+      <p>No paid tiers or payment logic were found in the current source. The operator should confirm this statement. A real support-server URL and contact address have not been configured in this project.</p>
+
+      <h2>Not affiliated with Discord</h2>
+      <p>NEXUS is not affiliated with or endorsed by Discord Inc.</p>
+      <p class="draft-note">Terms, warranty, liability, dispute, governing-law, and termination language require qualified human/legal review and operator decisions; they are intentionally not invented here.</p>
+    </div>
+  </main>
+  <SiteFooter />
+</SiteLayout>
