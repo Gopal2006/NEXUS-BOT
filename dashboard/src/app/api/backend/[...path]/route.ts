@@ -16,10 +16,12 @@ async function handleProxy(
   const subpath = resolvedParams.path.join("/");
   const searchParams = req.nextUrl.search;
   const apiUrl = (process.env.BOT_API_URL || "http://127.0.0.1:8000").trim().replace(/\/+$/, "");
-  const apiKey = (process.env.BOT_API_KEY || "").trim().replace(/^["']|["']$/g, "");
+  const apiKey = (process.env.BOT_API_KEY || process.env.DASHBOARD_API_KEY || "").trim().replace(/^["']|["']$/g, "");
 
   if (!apiKey) {
     console.error("[Backend Proxy] BOT_API_KEY is missing or empty in environment variables!");
+  } else {
+    console.log(`[Backend Proxy] Using API Key (length: ${apiKey.length}, starts with: "${apiKey.slice(0, 4)}...", ends with: "...${apiKey.slice(-4)}")`);
   }
 
   const targetUrl = `${apiUrl}/api/v1/${subpath}${searchParams}`;
