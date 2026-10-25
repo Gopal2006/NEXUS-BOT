@@ -14,6 +14,7 @@ export const authOptions: NextAuthOptions = {
     DiscordProvider({
       clientId: rawClientId,
       clientSecret: clientSecret,
+      issuer: "https://discord.com",
       authorization: { params: { scope: "identify guilds" } },
     }),
   ],
