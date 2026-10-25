@@ -1,8 +1,8 @@
 import { NextAuthOptions } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
 
-const rawClientId = (process.env.DISCORD_CLIENT_ID || "").trim();
-let clientSecret = (process.env.DISCORD_CLIENT_SECRET || "").trim();
+const rawClientId = (process.env.DISCORD_CLIENT_ID || "").trim().replace(/^["']|["']$/g, "");
+let clientSecret = (process.env.DISCORD_CLIENT_SECRET || "").trim().replace(/^["']|["']$/g, "");
 
 // Auto-sanitize: if client ID was accidentally appended to secret, strip it
 if (rawClientId && clientSecret.endsWith(rawClientId) && clientSecret.length > 32) {
@@ -41,7 +41,7 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
     error: "/login",
   },
-  debug: process.env.NODE_ENV === "development",
+  debug: true,
   logger: {
     error(code, metadata) {
       console.error(`[NextAuth Error] [${code}]:`, metadata);

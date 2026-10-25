@@ -42,7 +42,8 @@ function LoginContent() {
     if (!err) return null;
     switch (err) {
       case "OAuthCallback":
-        return "Authentication callback failed. Verify DISCORD_CLIENT_SECRET in .env.local and that your redirect URI matches http://localhost:3000/api/auth/callback/discord.";
+        const currentOrigin = typeof window !== "undefined" ? window.location.origin : "https://<your-vercel-domain>";
+        return `Authentication callback failed. Verify DISCORD_CLIENT_SECRET in your environment variables and make sure your Discord Developer Portal redirect URI includes ${currentOrigin}/api/auth/callback/discord`;
       case "OAuthSignin":
       case "OAuthCreateAccount":
         return "Could not initialize session handoff with Discord.";
