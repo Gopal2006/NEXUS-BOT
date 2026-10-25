@@ -16,15 +16,8 @@ export async function GET() {
 
     if (res.ok) {
       const data = await res.json();
-      const botKey = (process.env.BOT_API_KEY || "").trim();
-      const dashKey = (process.env.DASHBOARD_API_KEY || "").trim();
       return NextResponse.json({
         status: data.status === "healthy" ? "online" : "starting",
-        botKeyConfigured: !!botKey,
-        botKeyLength: botKey.length,
-        botKeyPreview: botKey ? `${botKey.slice(0, 4)}...${botKey.slice(-4)}` : "NOT_SET",
-        dashKeyConfigured: !!dashKey,
-        dashKeyLength: dashKey.length,
         raw: data,
       });
     }
